@@ -1,34 +1,39 @@
 # Decision Tree Class
 
+# Kemungkinan yang dapat direvisi:
+# Menambahkan atribut entropy dan jumlah sample yang masuk
+# Mungkin data sampel yang masuk
+# Mungkin string yang dieksekusi buat tree (eval(<string>))
+
 class DecisionTree:
     # Constructor
     def __init__(self, value = None):
         self.root = value
         self.left = None
         self.right = None
-    
+
     # Getter setter
     def getRootValue(self):
         return self.root
-    
+
     def getLeft(self):
         return self.left
-    
+
     def getRight(self):
         return self.right
-    
+
     def setRootValue(self, rootValue):
         self.root = rootValue
-    
+
     def setLeft(self, leftValue):
         self.left = leftValue
-    
+
     def setRight(self, rightValue):
         self.right = rightValue
 
     def setLeftValue(self, leftValue):
         self.left = DecisionTree(leftValue)
-    
+
     def setRightValue(self, rightValue):
         self.right = DecisionTree(rightValue)
 
