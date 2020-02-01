@@ -27,16 +27,16 @@ def splitXY(dataHead, data):
 
 # Coding the Y axis
 # Returns a dictionary of Y and translated value of Y
-# Dictionary
+# Dictionary index represents the number while the value of the index represents the number mapping
 def translateY(dataTarget):
     dic = []
     for i in range(len(dataTarget)):
         if dataTarget[i] not in dic:
-            dic += dataTarget[i]
+            dic.append(dataTarget[i])
             dataTarget[i] = len(dic) - 1
         else:
             dataTarget[i] = dic.index(dataTarget[i])
-
+    return (dataTarget, dic)
         
 
 
@@ -51,4 +51,8 @@ def fit(data):
 	
 
 dataHead, data = getCSVData("tennis.csv")
-print(splitXY(dataHead, data))
+newX, newY = splitXY(dataHead, data)
+# print(newY)
+newY, dic = translateY(newY)
+print(newY)
+print(dic)
