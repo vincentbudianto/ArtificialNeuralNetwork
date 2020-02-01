@@ -25,34 +25,33 @@ def splitXY(dataHead, data):
         newY.append(data[i, size - 1])
     return (newX, newY)
 
+# Splitting header... Get attributes and 
+
 # Coding the Y axis
 # Returns a dictionary of Y and translated value of Y
 # Dictionary index represents the number while the value of the index represents the number mapping
 def translateY(dataTarget):
-    dic = []
+    classDictionary = []
     for i in range(len(dataTarget)):
         if dataTarget[i] not in dic:
-            dic.append(dataTarget[i])
-            dataTarget[i] = len(dic) - 1
+            classDictionary.append(dataTarget[i])
+            dataTarget[i] = len(classDictionary) - 1
         else:
-            dataTarget[i] = dic.index(dataTarget[i])
-    return (dataTarget, dic)
-        
+            dataTarget[i] = classDictionary.index(dataTarget[i])
+    return (dataTarget, classDictionary)
 
-
-# Parsing ke bentuk number
-def numberParser(data):
-    print("test")
-    
 
 # Create a basic fitying algorithn
 def fit(data):
     decisionTree = DecisionTree()
+    
+    # Simple looping to find root algorithm
+    
 	
 
-dataHead, data = getCSVData("tennis.csv")
-newX, newY = splitXY(dataHead, data)
+# dataHead, data = getCSVData("tennis.csv")
+# newX, newY = splitXY(dataHead, data)
+# # print(newY)
+# newY, classDictionary = translateY(newY)
 # print(newY)
-newY, dic = translateY(newY)
-print(newY)
-print(dic)
+# print(classDictionary)
