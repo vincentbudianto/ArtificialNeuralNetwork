@@ -12,7 +12,10 @@ def getCSVData(fileName):
     data = np.array(data)
     return (np.array(dataHead), data)
 
-# Data splitter (splits data)
+
+# Splitters and translaters
+
+# Data splitter (splits X and Y)
 def splitXY(dataHead, data):
     newX = []
     newY = []
@@ -24,8 +27,6 @@ def splitXY(dataHead, data):
         newX.append(tempArray)
         newY.append(data[i, size - 1])
     return (np.array(newX), np.array(newY))
-
-# Splitting header... Get attributes and 
 
 # Coding the Y axis
 # Returns a dictionary of Y and translated value of Y
@@ -40,21 +41,79 @@ def translateY(dataTarget):
             dataTarget[i] = classDictionary.index(dataTarget[i])
     return (dataTarget, np.array(classDictionary))
 
+# Data splitter (splits data based on X attribute)
+def dataSplitter(dataX, dataY):
+    result = DecisionTree()
+
+    # Checking the number of data in Y and the variety
+    tempY = []
+    tempYCounter = []
+    for i in range(len(dataY)):
+        if dataY[i] not in tempDictionary:
+            tempY.append(dataY[i])
+            tempYCounter.append(1)
+        else:
+            tempCounter.index(dataY[i]) += 1
+    
+    # If all examples are negative, Return the single-node tree Root, with label = +
+    # If all examples are negative, Return the single-node tree Root, with label = -
+    if (len(tempY) == 1):
+        result.setRootValue(tempY[0])
+        return result
+    
+    # If number of predicting attributes is empty, then Return the single node tree Root,
+    # with label = most common value of the target attribute in the examples.
+    if len(dataX) == 0:
+        # Count most common value
+        maxIdx = tempYCounter.index(max(tempYCounter))
+        result.setRootValue(dataY[maxIdx])
+        return result
+
+    
+    # Otherwise...
+    # Splits into a couple of attributes
+    for i in range(len(dataX)):
+        # 1. List every attribute in temporary dictionary
+        tempDictionary = []
+        for j in range(len(dataX[i])):
+            if dataX[i, j] not in tempDictionary:
+                tempDictionary.append(dataX[i, j])
+
+        # 2. Transform the X equipment into numbers
+    
+
+
+
+
+    # Sp
+    return result
+
+
 
 # Create a basic fitying algorithn
 def fit(dataX, dataY):
     decisionTree = DecisionTree()
     
+    # Checking current entropy
     currentEntropy = f.entropyFunction(dataY)
     print(currentEntropy)
     
-    # Simple looping to find root algorithm
+    # Finding nodes that is most effective
+
+
+# Node splitter function
+def attributeSplitter(dataX):
+    print("test")
+    for i in range(len(dataX)):
+        print("test_too")
+
+
 
 
     
 	
 
-dataHead, data = getCSVData("tennis.csv")
-newX, newY = splitXY(dataHead, data)
-newY, classDictionary = translateY(newY)
-fit(newX, newY)
+# dataHead, data = getCSVData("tennis.csv")
+# newX, newY = splitXY(dataHead, data)
+# newY, classDictionary = translateY(newY)
+# fit(newX, newY)
