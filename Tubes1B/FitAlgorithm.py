@@ -10,7 +10,7 @@ def getCSVData(fileName):
     data = pd.read_csv(fileName)
     dataHead = list(data.columns)
     data = np.array(data)
-    return (dataHead, data)
+    return (np.array(dataHead), data)
 
 # Data splitter (splits data)
 def splitXY(dataHead, data):
@@ -23,7 +23,7 @@ def splitXY(dataHead, data):
             tempArray.append(data[i, j])
         newX.append(tempArray)
         newY.append(data[i, size - 1])
-    return (newX, newY)
+    return (np.array(newX), np.array(newY))
 
 # Splitting header... Get attributes and 
 
@@ -33,25 +33,28 @@ def splitXY(dataHead, data):
 def translateY(dataTarget):
     classDictionary = []
     for i in range(len(dataTarget)):
-        if dataTarget[i] not in dic:
+        if dataTarget[i] not in classDictionary:
             classDictionary.append(dataTarget[i])
             dataTarget[i] = len(classDictionary) - 1
         else:
             dataTarget[i] = classDictionary.index(dataTarget[i])
-    return (dataTarget, classDictionary)
+    return (dataTarget, np.array(classDictionary))
 
 
 # Create a basic fitying algorithn
-def fit(data):
+def fit(dataX, dataY):
     decisionTree = DecisionTree()
     
+    currentEntropy = f.entropyFunction(dataY)
+    print(currentEntropy)
+    
     # Simple looping to find root algorithm
+
+
     
 	
 
-# dataHead, data = getCSVData("tennis.csv")
-# newX, newY = splitXY(dataHead, data)
-# # print(newY)
-# newY, classDictionary = translateY(newY)
-# print(newY)
-# print(classDictionary)
+dataHead, data = getCSVData("tennis.csv")
+newX, newY = splitXY(dataHead, data)
+newY, classDictionary = translateY(newY)
+fit(newX, newY)
