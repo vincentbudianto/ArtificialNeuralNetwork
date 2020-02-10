@@ -60,9 +60,13 @@ def translateX(dataX):
 
 
 # Data assessment (returns the result decision tree)
-def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, usableAttribute):
+def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, classDictionary, usableAttribute, oldAttribute = None):
     # Empty result variable
     result = DecisionTree()
+
+    # Insert attribute value
+    if (oldAttribute != None):
+        result.setAttributeValue(oldAttribute)
 
     # Checking the number of data in Y and the variety
     tempY = []
@@ -77,7 +81,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, usab
     # If all examples are positive, Return the single-node tree Root, with label = +
     # If all examples are negative, Return the single-node tree Root, with label = -
     if (len(tempY) == 1):
-        result.setRootValue(tempY[0])
+        result.setRootValue(classDictionary[tempY[0]])
         return result
 
     # If number of predicting attributes is empty, then Return the single node tree Root,
@@ -85,7 +89,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, usab
     if len(usableAttribute) == 0:
         # Count most common value
         maxIdx = tempYCounter.index(max(tempYCounter))
-        result.setRootValue(dataY[maxIdx])
+        result.setRootValue(classDictionary[dataY[maxIdx]])
         return result
 
     # Otherwise...
@@ -129,8 +133,6 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, usab
 
         # Get information gain
         informationGain = oldEntropy - totalEntropy
-        print("oldEntropy :", oldEntropy)
-        print("entropyContainer :", entropyContainer)
 
         # Check if information gain is better than the last one
         # If yes, set best entropy, information gain, attribute, class container, and target container
@@ -147,22 +149,22 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, usab
     if (bestInformationGain == 0):
         # Count most common value
         maxIdx = tempYCounter.index(max(tempYCounter))
-        result.setRootValue(dataY[maxIdx])
+        result.setRootValue(classDictionary[dataY[maxIdx]])
         return result
 
     # Remove the last attribute
-    print("bestAttribute :", bestAttribute)
     idx = np.where(usableAttribute == bestAttribute)[0]
     usableAttribute = np.delete(usableAttribute, idx)
     result.setRootValue(bestAttribute)
-
-    print(bestClassContainer)
-    print(bestTargetContainer)
-    print(bestEntropy)
+    
+    # Check index where
+    bestIdx = np.where(dataHead == bestAttribute)[0][0]
 
     # Recursively add the next tree node based on this...
     for i in range(len(bestClassContainer)):
-        result.setNodes(dataAssessment(bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, usableAttribute))
+        # Set next old attribute
+        nextAttribute = bestAttribute + " = " + str(attributeDictionary[bestIdx][i])
+        result.setNodes(dataAssessment(bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, classDictionary, usableAttribute, nextAttribute))
 
     return result
 
@@ -170,16 +172,16 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, usab
 
 # Create a basic fitying algorithn
 # After translating X and Y
-def fit(dataX, dataY, dataHead, attributeDictionary):
+def fit(dataX, dataY, dataHead, attributeDictionary, classDictionary):
     decisionTree = DecisionTree()
 
     # Checking current entropy
     currentEntropy = f.entropyFunction(dataY)
-    print(currentEntropy)
+    print("Initial entropy:", currentEntropy)
 
     # Testing
     usableAttribute = dataHead[:-1]
-    result = dataAssessment(dataX, dataY, currentEntropy, dataHead, attributeDictionary, usableAttribute)
+    result = dataAssessment(dataX, dataY, currentEntropy, dataHead, attributeDictionary, classDictionary, usableAttribute)
     print()
     print('Tree Result:')
     result.printTree()
@@ -192,4 +194,4 @@ dataHead, data = getCSVData("tennis.csv")
 newX, newY = splitXY(dataHead, data)
 newY, classDictionary = translateY(newY)
 newX, attributeDictionary = translateX(newX)
-fit(newX, newY, dataHead, attributeDictionary)
+fit(newX, newY, dataHead, attributeDictionary, classDictionary)
