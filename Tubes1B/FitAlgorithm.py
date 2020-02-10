@@ -17,7 +17,6 @@ def getCSVData(fileName):
 def splitXY(dataHead, data):
     newX = []
     newY = []
-    size = len(dataHead)
     for datum in data:
         newX.append(datum[:-1])
         newY.append(datum[-1])
@@ -107,8 +106,8 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, clas
         splittedTargetContainer = []
         entropyContainer = []
 
-        # Translate usableAttribute to attributeDictionary index
-        idx = np.where(dataHead == usableAttribute[i])[0][0]
+        # Translate usableAttribute to dataHead index
+        idx = dataHead.tolist().index(usableAttribute[i])
 
         # For each value of the class in the attributeDictionary => create an array of X
         for j in range(len(attributeDictionary[idx])):
@@ -149,24 +148,25 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, clas
     if (bestInformationGain == 0):
         # Count most common value
         maxIdx = tempYCounter.index(max(tempYCounter))
-        result.setRootValue(classDictionary[dataY[maxIdx]])
+        result.setRootValue(classDictionary[tempY[maxIdx]])
         return result
+    else:
+        # Remove the best attribute
+        idx = usableAttribute.tolist().index(bestAttribute)
+        usableAttribute = np.delete(usableAttribute, idx)
+        result.setRootValue(bestAttribute)
 
-    # Remove the last attribute
-    idx = np.where(usableAttribute == bestAttribute)[0]
-    usableAttribute = np.delete(usableAttribute, idx)
-    result.setRootValue(bestAttribute)
-    
-    # Check index where
-    bestIdx = np.where(dataHead == bestAttribute)[0][0]
+        # Check index where
+        bestIdx = dataHead.tolist().index(bestAttribute)
+        # bestIdx = np.where(dataHead == bestAttribute)[0][0]
 
-    # Recursively add the next tree node based on this...
-    for i in range(len(bestClassContainer)):
-        # Set next old attribute
-        nextAttribute = bestAttribute + " = " + str(attributeDictionary[bestIdx][i])
-        result.setNodes(dataAssessment(bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, classDictionary, usableAttribute, nextAttribute))
+        # Recursively add the next tree node based on this...
+        for i in range(len(bestClassContainer)):
+            # Set next old attribute
+            nextAttribute = bestAttribute + " = " + str(attributeDictionary[bestIdx][i])
+            result.setNodes(dataAssessment(bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, classDictionary, usableAttribute, nextAttribute))
 
-    return result
+        return result
 
 
 
@@ -189,8 +189,9 @@ def fit(dataX, dataY, dataHead, attributeDictionary, classDictionary):
     # Finding nodes that is most effective
 
 
-
+# Get data and head
 dataHead, data = getCSVData("tennis.csv")
+# Get x and y
 newX, newY = splitXY(dataHead, data)
 newY, classDictionary = translateY(newY)
 newX, attributeDictionary = translateX(newX)
