@@ -9,50 +9,39 @@ class DecisionTree:
     # Constructor
     def __init__(self, value = None):
         self.root = value
-        self.left = None
-        self.right = None
+        self.nodes = []
 
     # Getter setter
     def getRootValue(self):
         return self.root
 
-    def getLeft(self):
-        return self.left
-
-    def getRight(self):
-        return self.right
+    def getNodes(self):
+        return self.nodes
 
     def setRootValue(self, rootValue):
         self.root = rootValue
 
-    def setLeft(self, leftValue):
-        self.left = leftValue
+    def setNodes(self, nodesValue):
+        self.nodes.append(nodesValue)
 
-    def setRight(self, rightValue):
-        self.right = rightValue
-
-    def setLeftValue(self, leftValue):
-        self.left = DecisionTree(leftValue)
-
-    def setRightValue(self, rightValue):
-        self.right = DecisionTree(rightValue)
+    def setNodesValue(self, nodesValue):
+        self.nodes.append(DecisionTree(nodesValue))
 
     # Print tree without visualization library (GraphViz)
     def printTree(self, tabCounter = 0):
         if self.root is not None:
             for i in range(tabCounter):
                 print("|  ", end = "")
-            print(self.root)
-            if self.left is not None:
-                self.getLeft().printTree(tabCounter + 1)
-            if self.right is not None:
-                self.getRight().printTree(tabCounter + 1)
 
+            print(self.root)
+
+            if len(self.nodes) != 0:
+                for node in self.nodes:
+                    node.printTree(tabCounter + 1)
 
 # Test data
 # tree = DecisionTree()
 # tree.setRootValue("test")
-
 # leftTree = DecisionTree()
 # leftTree.setRootValue("testLeft")
 

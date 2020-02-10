@@ -1,5 +1,4 @@
 # Main program to fit the data read
-
 import pandas as pd
 import numpy as np
 import Function as f
@@ -61,7 +60,7 @@ def translateX(dataX):
 
 
 # Data assessment (returns the result decision tree)
-def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, usedAttribute = []):
+def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, usableAttribute):
     # Empty result variable
     result = DecisionTree()
 
@@ -75,7 +74,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, used
         else:
             tempYCounter[tempY.index(dataY[i])] += 1
 
-    # If all examples are negative, Return the single-node tree Root, with label = +
+    # If all examples are positive, Return the single-node tree Root, with label = +
     # If all examples are negative, Return the single-node tree Root, with label = -
     if (len(tempY) == 1):
         result.setRootValue(tempY[0])
@@ -83,55 +82,65 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, used
 
     # If number of predicting attributes is empty, then Return the single node tree Root,
     # with label = most common value of the target attribute in the examples.
-    if len(dataX[0]) == 0:
+    if len(usableAttribute) == 0:
         # Count most common value
         maxIdx = tempYCounter.index(max(tempYCounter))
         result.setRootValue(dataY[maxIdx])
         return result
 
-
     # Otherwise...
     # Splits into a couple of attributes, find entropy, and recursively update this
     bestInformationGain = 0 # Change this with minimum entropy gain
     bestAttribute = None
-    bestSplitter = None
+    bestClassContainer = []
+    bestTargetContainer = []
+    bestEntropy = []
 
     # For each attributes
-    for i in range(len(dataX[0])):
-        # 1. Assign splitters
+    for i in range(len(usableAttribute)):
         # Breakpoints are placed for every integer slip
-        for j in range(1, len(attributeDictionary[i])):
-            # Breakpoints are the (element value - 0.5)
-            bp = j - 0.5
+        splittedClassContainer = []
+        splittedTargetContainer = []
+        entropyContainer = []
 
-            # Splits data based on classes (more and less than break points)
-            smallerClassY = []
-            biggerClassY = []
+        # Translate usableAttribute to attributeDictionary index
+        idx = np.where(dataHead == usableAttribute[i])[0][0]
 
-            # Loop through the data
-            # Put into the next data according to breakpoint position
+        # For each value of the class in the attributeDictionary => create an array of X
+        for j in range(len(attributeDictionary[idx])):
+            tempXContainer = []
+            tempYContainer = []
+
             for k in range(len(dataX)):
-                if (dataX[k][i] <= bp):
-                    smallerClassY.append(dataY[k])
-                else:
-                    biggerClassY.append(dataY[k])
-            
-            # Find the entropy of each class
-            smallerEntropy = f.entropyFunction(smallerClassY)
-            biggerEntropy = f.entropyFunction(biggerClassY)
+                if (dataX[k][idx]) == j:
+                    tempXContainer.append(dataX[k])
+                    tempYContainer.append(dataY[k])
 
-            # Find the information gain
-            informationGain = oldEntropy - (smallerEntropy / len(dataX) * len(smallerClassY) + biggerEntropy / len(dataX) * len(biggerClassY))
+            splittedClassContainer.append(tempXContainer)
+            splittedTargetContainer.append(tempYContainer)
+            entropyContainer.append(f.entropyFunction(tempYContainer))
 
-            if informationGain > bestInformationGain:
-                bestInformationGain = informationGain
-                bestAttribute = i
-                bestSplitter = j
-    
-    # Add attribute dictionary used
-    print(dataHead[bestAttribute])
-    usedAttribute.append((dataHead[bestAttribute] + " = " + str(bestSplitter - 0.5)))
-    
+
+        # Find the total entropy
+        totalEntropy = 0
+        for j in range(len(splittedClassContainer)):
+            dataCount = len(splittedClassContainer[j])
+            totalEntropy += dataCount / len(dataX) * entropyContainer[j]
+
+        # Get information gain
+        informationGain = oldEntropy - totalEntropy
+        print("oldEntropy :", oldEntropy)
+        print("entropyContainer :", entropyContainer)
+
+        # Check if information gain is better than the last one
+        # If yes, set best entropy, information gain, attribute, class container, and target container
+        if informationGain > bestInformationGain:
+            bestInformationGain = informationGain
+            bestAttribute = usableAttribute[i]
+            bestClassContainer = splittedClassContainer
+            bestTargetContainer = splittedTargetContainer
+            bestEntropy = entropyContainer
+
     # Know best splitting area for best information gain
     # If no information is gained then
     # Change the zero if the pruning is based on minimum information gain
@@ -140,22 +149,22 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, used
         maxIdx = tempYCounter.index(max(tempYCounter))
         result.setRootValue(dataY[maxIdx])
         return result
-    
-    # Else, loop for next entropy gain
-    smallerClassX = []
-    biggerClassX = []
-    bp = bestSplitter - 0.5
 
-    for i in range(len(dataX)):
-        if (dataX[i][bestAttribute] <= bp):
-            smallerClassX.append(dataX[i])
-        else:
-            biggerClassX.append(dataX[i])
+    # Remove the last attribute
+    print("bestAttribute :", bestAttribute)
+    idx = np.where(usableAttribute == bestAttribute)[0]
+    usableAttribute = np.delete(usableAttribute, idx)
+    result.setRootValue(bestAttribute)
+
+    print(bestClassContainer)
+    print(bestTargetContainer)
+    print(bestEntropy)
 
     # Recursively add the next tree node based on this...
-    # result.setLeft(dataAssessment(smallerClassX, smallerClassY, smallerEntropy, dataHead, attributeDictionary, usedAttribute))
-    # result.setRight(dataAssessment(biggerClassX, biggerClassY, biggerEntropy, dataHead, attributeDictionary, usedAttribute))
-    return usedAttribute
+    for i in range(len(bestClassContainer)):
+        result.setNodes(dataAssessment(bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, usableAttribute))
+
+    return result
 
 
 
@@ -169,7 +178,11 @@ def fit(dataX, dataY, dataHead, attributeDictionary):
     print(currentEntropy)
 
     # Testing
-    print(dataAssessment(dataX, dataY, currentEntropy, dataHead, attributeDictionary))
+    usableAttribute = dataHead[:-1]
+    result = dataAssessment(dataX, dataY, currentEntropy, dataHead, attributeDictionary, usableAttribute)
+    print()
+    print('Tree Result:')
+    result.printTree()
 
     # Finding nodes that is most effective
 
@@ -179,5 +192,4 @@ dataHead, data = getCSVData("tennis.csv")
 newX, newY = splitXY(dataHead, data)
 newY, classDictionary = translateY(newY)
 newX, attributeDictionary = translateX(newX)
-print(attributeDictionary)
 fit(newX, newY, dataHead, attributeDictionary)
