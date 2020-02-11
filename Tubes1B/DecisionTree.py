@@ -7,52 +7,50 @@
 
 class DecisionTree:
     # Constructor
-    def __init__(self, value = None):
+    def __init__(self, value = None, attribute = None):
+        self.attribute = attribute
         self.root = value
-        self.left = None
-        self.right = None
+        self.nodes = []
 
     # Getter setter
+    def getAttributeValue(self):
+        return self.attribute
+
     def getRootValue(self):
         return self.root
 
-    def getLeft(self):
-        return self.left
+    def getNodes(self):
+        return self.nodes
 
-    def getRight(self):
-        return self.right
+    def setAttributeValue(self, attributeValue):
+        self.attribute = attributeValue
 
     def setRootValue(self, rootValue):
         self.root = rootValue
 
-    def setLeft(self, leftValue):
-        self.left = leftValue
+    def setNodes(self, nodesValue):
+        self.nodes.append(nodesValue)
 
-    def setRight(self, rightValue):
-        self.right = rightValue
-
-    def setLeftValue(self, leftValue):
-        self.left = DecisionTree(leftValue)
-
-    def setRightValue(self, rightValue):
-        self.right = DecisionTree(rightValue)
+    def setNodesValue(self, nodesValue):
+        self.nodes.append(DecisionTree(nodesValue))
 
     # Print tree without visualization library (GraphViz)
     def printTree(self, tabCounter = 0):
         if self.root is not None:
+            if (tabCounter > 0):
+                for i in range(tabCounter - 1):
+                    print("|  ", end = "")
+                print(self.attribute)
             for i in range(tabCounter):
                 print("|  ", end = "")
             print(self.root)
-            if self.left is not None:
-                self.getLeft().printTree(tabCounter + 1)
-            if self.right is not None:
-                self.getRight().printTree(tabCounter + 1)
-
+            if len(self.nodes) != 0:
+                for node in self.nodes:
+                    node.printTree(tabCounter + 1)
 
 # Test data
 # tree = DecisionTree()
 # tree.setRootValue("test")
-
 # leftTree = DecisionTree()
 # leftTree.setRootValue("testLeft")
 

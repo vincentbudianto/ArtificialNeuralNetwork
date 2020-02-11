@@ -22,5 +22,6 @@ def informationGainFunction(data, attr, target):
 		gain = np.sum([(counts[i] / np.sum(counts)) * entropy(data.where(data[attr] == values[i]).dropna()[target])])
 
 	informationGain = entropy - gain
+	
 
 	return informationGain
