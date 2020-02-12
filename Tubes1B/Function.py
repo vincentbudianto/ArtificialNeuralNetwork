@@ -11,6 +11,17 @@ def entropyFunction(data):
 
 	return entropy
 
+# Funcion splitInInformation(data, index):
+# Calculate the value of splitInInformation of certain index in dataset
+# Total length = length of the total data uncategorized
+def splitInInformation(splittedClassContainer, totalLength):
+	splitInformation = 0
+
+	for i in range(len(splittedClassContainer)):
+		splitInformation += np.sum([(-len(splittedClassContainer[i]) / totalLength) * np.log2(len(splittedClassContainer) / totalLength)])
+
+	return splitInformation
+
 # Function informationGainFunction(data):
 # calculate the information gain value of a dataset
 def informationGainFunction(data, attr, target):
