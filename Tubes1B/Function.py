@@ -18,8 +18,8 @@ def splitInInformation(splittedClassContainer, totalLength):
 	splitInformation = 0
 
 	for i in range(len(splittedClassContainer)):
-		splitInformation += np.sum([(-len(splittedClassContainer[i]) / totalLength) * np.log2(len(splittedClassContainer) / totalLength)])
-
+		if (len(splittedClassContainer[i]) != 0):
+			splitInformation += (-len(splittedClassContainer[i]) / totalLength) * np.log2(len(splittedClassContainer[i]) / totalLength)
 	return splitInformation
 
 # Function informationGainFunction(data):
@@ -33,6 +33,6 @@ def informationGainFunction(data, attr, target):
 		gain = np.sum([(counts[i] / np.sum(counts)) * entropy(data.where(data[attr] == values[i]).dropna()[target])])
 
 	informationGain = entropy - gain
-	
+
 
 	return informationGain

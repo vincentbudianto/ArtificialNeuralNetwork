@@ -34,7 +34,7 @@ def translateY(dataTarget):
 
 # Translates the attronite values
 # Saves the value in attributeDictionary and codes the value
-# If is continuous, then 
+# If is continuous, then
 def translateX(data):
     attributeIsDiscrete = []
     attributeDictionary = []
@@ -57,7 +57,7 @@ def translateX(data):
                     data[j][i] = len(tempDictionary) - 1
                 else:
                     data[j][i] = tempDictionary.index(data[j][i])
-        
+
         # If the data is continuous, change data into splitters
         else:
             data = sorted(data, key=lambda x:x[i])
@@ -66,17 +66,17 @@ def translateX(data):
             for j in range(1, len(data)):
                 # If the Y value is different, then assign splitter
                 if data[j][-1] != data[j - 1][-1] and data[j][i] != data[j - 1][i]:
-                    split = (data[j][i] + data[j - 1][i]) / 2    
+                    split = (data[j][i] + data[j - 1][i]) / 2
                     for k in range(firstIdx, j):
                         data[k][i] = len(tempDictionary)
                     tempDictionary.append(split)
                     firstIdx = j
-                
+
             # Encode the last value
             tempDictionary.append(data[len(data) - 1][i] + 0.5)
             for j in range(firstIdx, len(data)):
                 data[j][i] = len(tempDictionary) - 1
-        
+
 
         attributeDictionary.append(tempDictionary)
         attributeIsDiscrete.append(isDiscrete)
@@ -108,11 +108,6 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
 
     # Insert attribute value
     if (oldAttribute != None):
-        # print(oldAttribute)
-        # print(dataY)
-        # print(oldEntropy)
-        # print(attributeDictionary)
-        # print()
         result.setAttributeValue(oldAttribute)
 
     # Checking the number of data in Y and the variety
@@ -161,7 +156,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
         # Translate usableAttribute to dataHead index
         idx = dataHead.index(usableAttribute[i])
 
-        if attributeIsDiscrete[i]:    
+        if attributeIsDiscrete[i]:
             # For each value of the class in the attributeDictionary => create an array of X
             for j in range(len(attributeDictionary[idx])):
                 tempXContainer = []
@@ -185,7 +180,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
 
             # Get information gain
             informationGainRatio = (oldEntropy - totalEntropy) / f.splitInInformation(splittedClassContainer, len(dataX))
-        
+
         else:
             # Breakpoints are assigned in the attributeDictionary
             # Need to find value with the best information gain
@@ -212,23 +207,24 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
                     else:
                         biggerClassContainer.append(dataX[k])
                         biggerTargetContainer.append(dataY[k])
-                
+
                 # Check entropy for each class
                 smallerEntropy = f.entropyFunction(smallerTargetContainer)
                 biggerEntropy = f.entropyFunction(biggerTargetContainer)
 
-                # Get the information gain
+                if (len(smallerClassContainer) != 0 and len(biggerClassContainer) != 0):
+                    # Get the information gain
+                    totalEntropy = smallerEntropy * len(smallerClassContainer) / len(dataY) + biggerEntropy * len(biggerClassContainer) / len(dataY)
+                    tempGainRatio = (oldEntropy - totalEntropy) / f.splitInInformation([smallerClassContainer, biggerClassContainer], len(dataX))
 
-                totalEntropy = smallerEntropy * len(smallerClassContainer) / len(dataY) + biggerEntropy * len(biggerClassContainer) / len(dataY)
-                tempGainRatio = (oldEntropy - totalEntropy) / f.splitInInformation([smallerClassContainer, biggerClassContainer], len(dataX))
-                
-                # If it is the better information gain
-                if tempGainRatio > informationGainRatio:
-                    informationGainRatio = tempGainRatio
-                    splittedClassContainer = [smallerClassContainer, biggerClassContainer]
-                    splittedTargetContainer = [smallerTargetContainer, biggerTargetContainer]
-                    entropyContainer = [smallerEntropy, biggerEntropy]
-                    tempSplitted = j
+                    # If it is the better information gain
+                    if tempGainRatio > informationGainRatio:
+                        informationGainRatio = tempGainRatio
+                        splittedClassContainer = [smallerClassContainer, biggerClassContainer]
+                        splittedTargetContainer = [smallerTargetContainer, biggerTargetContainer]
+                        entropyContainer = [smallerEntropy, biggerEntropy]
+                        tempSplitted = j
+        
 
         # Check if information gain is better than the last one
         # If yes, set best entropy, information gain, attribute, class container, and target container
@@ -244,6 +240,12 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
     # Know best splitting area for best information gain
     # If no information is gained then
     # Change the zero if the pruning is based on minimum information gain
+    # print(bestAttribute)
+    # if (bestAttribute == "petal.width"):
+    #     print(bestClassContainer)
+    #     print(bestTargetContainer)
+    #     print(bestSplitted)
+    #     print(bestInformationGainRatio)
     if (bestInformationGainRatio == 0):
         # Count most common value
         maxIdx = tempYCounter.index(max(tempYCounter))
@@ -268,7 +270,11 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
                     nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted])
                 else:
                     nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted])
-            result.setNodes(dataAssessment(bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute, nextAttribute))
+            
+            # Set new array of attributes
+            tempUsableAttribute = usableAttribute[:]
+            
+            result.setNodes(dataAssessment(bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, tempUsableAttribute, nextAttribute))
 
         return result
 
@@ -279,9 +285,6 @@ dataHead, data = getCSVData("tennis.csv")
 data, attributeDictionary, attributeIsDiscrete = translateX(data)
 dataX, dataY = splitXY(data)
 dataY, classDictionary = translateY(dataY)
-print(attributeIsDiscrete)
-print(dataX)
-print(dataY)
 fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
 
 # print(dataX)
