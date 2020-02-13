@@ -278,8 +278,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
     #     print(bestInformationGainRatio)
     if (bestInformationGainRatio == 0):
         # Count most common value
-        maxIdx = tempYCounter.index(max(tempYCounter))
-        result.setRootValue(classDictionary[tempY[maxIdx]])
+        result.setRootValue(classDictionary[0])
 
         return result
     else:
@@ -323,12 +322,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
                             nextAttribute += "/" + str(impurity[j][1])
                     else:
                         nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
-
-                    # print(nextAttribute)
-                    # print("bestTargetContainer:", len(bestTargetContainer[1]))
-                    # print("bestTargetContainer:", bestTargetContainer[1])
-                    # print(impurity)
-
+            
             # Set new array of attributes
             tempUsableAttribute = usableAttribute[:]
 
