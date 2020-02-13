@@ -4,6 +4,7 @@ import Function as f
 import copy as cp
 import random
 from DecisionTree import DecisionTree
+from collections import defaultdict
 
 # Get data from csv
 def getCSVData(fileName):
@@ -75,7 +76,7 @@ def createAttributeandIsDiscrete(data):
                 if data[j][-1] != data[j - 1][-1] and data[j][i] != data[j - 1][i]:
                     split = (data[j][i] + data[j - 1][i]) / 2
                     tempDictionary.append(split)
-            
+
             tempDictionary.append(data[len(data) - 1][i] + 0.5)
 
         attributeDictionary.append(tempDictionary)
@@ -88,7 +89,7 @@ def createAttributeandIsDiscrete(data):
 # Saves the value in attributeDictionary and codes the value
 # If is continuous, then
 def translateX(data, attributeDictionary, attributeIsDiscrete):
-    # Testing 
+    # Testing
     for i in range(len(data[0]) - 1):
         if (attributeIsDiscrete[i]):
             for j in range(len(data)):
@@ -110,7 +111,7 @@ def fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classD
     # Checking current entropy
     currentEntropy = f.entropyFunction(dataY)
     # print()
-    # print("Initial entropy:", currentEntropy) 
+    # print("Initial entropy:", currentEntropy)
 
     # Getting tree through recursive function
     usableAttribute = dataHead[:-1]
@@ -313,7 +314,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
                             nextAttribute += "/" + str(impurity[j][1])
                     else:
                         nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
-            
+
             # Set new array of attributes
             tempUsableAttribute = usableAttribute[:]
 
@@ -330,9 +331,9 @@ def prune(dataHead, data, dataRaw):
     # Generate tree from training data
     attributeDictionary, attributeIsDiscrete = createAttributeandIsDiscrete(data)
 
-    # Splits the element based on 
+    # Splits the element based on
     trainingData = dataRaw.sample(frac=0.8)
-    
+
 
     testingData = dataRaw.drop(trainingData.index)
     trainingData = np.array(trainingData)
@@ -343,13 +344,14 @@ def prune(dataHead, data, dataRaw):
 
     # Generate tree from training data
     dataX, dataY = splitXY(trainingData)
+    feelEmptyData(dataX)
     dataY, classDictionary = translateY(dataY)
     treeResult = fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
 
     # Create set of rules
     treeResult.printTree()
     ruleList = treeToRules(treeResult, dataHead)
-    print(ruleList)
+    # print(ruleList)
     functionRules = []
     for i in range(len(ruleList)):
         functionRules.append(createRule(ruleList[i]))
@@ -361,47 +363,75 @@ def prune(dataHead, data, dataRaw):
         if (res != testingData[i][-1]):
             errorCount += 1
 
-    print(testingData)
-    
-    print()
-    print(errorCount)
-    
+    # print(testingData)
+
+    # print()
+    # print(errorCount)
+
     # Testing pruning....
-    index = 0
-    failCounter = 0
-    while len(ruleList[index]) > 1:
-        tempRuleList = cp.copy(ruleList[index])
+    # For each rule
+    for ruleIdx, rule in enumerate(ruleList):
         tempFunctionRules = cp.copy(functionRules)
-        tempRuleList.remove(tempRuleList[-2])
-        
-        tempFunctionRules[index] = createRule(ruleList[index])
+        tempRule = cp.copy(rule)
 
-        tempErrorCount = 0
-        for i in range(len(testingData)):
-            tempRes = testResult(functionRules, testingData[i], dataHead)
-            if (tempRes != testingData[i][-1]):
-                tempErrorCount += 1
-        
-        if (tempErrorCount < errorCount):
-            ruleList[index] = tempRuleList
-            functionRules = tempFunctionRules
-            errorCount = tempErrorCount
-        else:
-            failCounter += 1
-        
-        if index == len(ruleList) - 1:
-            index = 0
-        else:
-            index += 1
-        
-        if failCounter == len(ruleList):
-            break
-    
-    print(ruleList)
-    print(errorCount)
-        
+        # For each attr in the rule
+        attrIdx = 0
+        while attrIdx < (len(tempRule)-1):
+            experimentRule = cp.copy(tempRule)
+            del experimentRule[attrIdx]
 
+            experimentFunctionRules = cp.copy(tempFunctionRules)
+            experimentFunctionRules[ruleIdx] = createRule(experimentRule)
 
+            tempErrorCount = getErrorCount(testingData, experimentFunctionRules, dataHead)
+
+            # Do pruning
+            if (tempErrorCount <= errorCount):
+                tempRule = experimentRule
+                tempFunctionRules = experimentFunctionRules
+                errorCount = tempErrorCount
+            else: # Don't do pruning
+                attrIdx += 1
+
+        ruleList[ruleIdx] = tempRule
+        functionRules = tempFunctionRules
+
+    # print(ruleList)
+    # print(errorCount)
+
+# Procedure that feels missing values for each attributes in dataX
+def feelEmptyData(dataX):
+    dataXSample = dataX[0]
+    # do for each attribute
+    for attrIdx in range(len(dataXSample)):
+        attrCountDict = defaultdict(int)
+        missingValueRows = []
+
+        # do for each row of the data
+        for rowIdx, eachRow in enumerate(dataX):
+            cellValue = eachRow[attrIdx]
+
+            # if not missing, put into the counter
+            if not pd.isna(cellValue):
+                attrCountDict[cellValue] += 1
+            else: # if missing put into list that contain index of rows having the missing value
+                missingValueRows.append(rowIdx)
+
+        # get most common value for current attr
+        mostCommonValueAttr = max(attrCountDict, key=attrCountDict.get)
+
+        # for those missing the value, replace the nan with the most common value
+        for missingRowIdx in missingValueRows:
+            dataX[missingRowIdx][attrIdx] = mostCommonValueAttr
+
+# Get error count from a set of rules
+def getErrorCount(testData, functionRules, dataHead):
+    errorCount = 0
+    for testDatum in testData:
+        res = testResult(functionRules, testDatum, dataHead)
+        if (res != testDatum[-1]):
+            errorCount +=1
+    return errorCount
 
 
 def treeToRules(treeResult, attributeList, lastRule = []):
@@ -423,7 +453,7 @@ def treeToRules(treeResult, attributeList, lastRule = []):
     else:
         rule.append(treeResult.root)
         return rule
-    
+
 def createRule(rules):
     def resultRule(testedData, dataHead):
         isTrue = True
@@ -440,6 +470,7 @@ def createRule(rules):
             return -9999
     return resultRule
 
+# find rules that predict the data correctly, if not found return -9999
 def testResult(functionRules, testedData, dataHead):
     for i in range(len(functionRules)):
         tempResult = functionRules[i](testedData, dataHead)
