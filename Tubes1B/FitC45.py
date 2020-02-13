@@ -323,6 +323,8 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
 
         return result
 
+# def createRuleSet()
+
 
 def prune(dataHead, data):
     # Generate tree from training data
@@ -330,8 +332,11 @@ def prune(dataHead, data):
 
     # Split data 80 : 20
     shuffledData = cp.copy(data)
+    # Split 80
     lenData = len(shuffledData) * 4 // 5
+    # Split 20
     restLenData = (len(shuffledData) - lenData) * -1
+
     trainingData = shuffledData[:lenData]
     testingData = shuffledData[restLenData:]
 
@@ -341,30 +346,80 @@ def prune(dataHead, data):
     # Generate tree from training data
     dataX, dataY = splitXY(trainingData)
     dataY, classDictionary = translateY(dataY)
+    # print(dataX)
+    # print(dataY)
+    # print(classDictionary)
     treeResult = fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
 
     treeResult.printTree()
+    rule = treeToRules(treeResult, dataHead)
+    print(rule)
+
+def treeToRules(treeResult, attributeList, lastRule = []):
+    rule = lastRule
+    if (treeResult.attribute is not None):
+        splittedRule = treeResult.attribute.split()
+        splittedRule = splittedRule[0] + " " + splittedRule [1] + " " + splittedRule[2]
+        rule.append(splittedRule)
+    if treeResult.root in attributeList:
+        tempRules = []
+        for i in range(len(treeResult.nodes)):
+            duplicateRule = cp.copy(rule)
+            tempResult = treeToRules(treeResult.nodes[i], attributeList, duplicateRule)
+            if isinstance(tempResult[0], list):
+                tempRules.extend(tempResult)
+            else:
+                tempRules.append(tempResult)
+        return tempRules
+    else:
+        rule.append(treeResult.root)
+        return rule
     
     # Get testing data  
-    print()
-    print(treeResult.nodes[0].attribute)
-    testedData = testingData[0]
 
-    criterion = treeResult.nodes[0].attribute.split()
-    print(criterion)
-    print(dataHead)
-    print("Tested: ", testedData)
+    
+    # # Find the class of tested atrribute
+    # for i in range(len(testingData)):
+    #     testedData = testingData[i]
+    #     criterion = treeResult.nodes[0].attribute.split()
+    #     print(criterion)
+    #     print(dataHead)
+    #     print("Tested: ", testedData)
 
-    attributeIndex = dataHead.index(criterion[0])
-    toBeEvaluated = str(testedData[attributeIndex]) + criterion[1] + criterion[2]
-    print(toBeEvaluated)
-    print(eval(toBeEvaluated))
+    #     attributeIndex = dataHead.index(criterion[0])
+    #     toBeEvaluated = str(testedData[attributeIndex]) + criterion[1] + criterion[2]
+    #     print(toBeEvaluated)
+    #     print(eval(toBeEvaluated))
+
+    #     for i in range(len(treeResult.nodes)):
+    #         criterion = treeResult.nodes[i].attribute.split()
+    #         attributeIndex = dataHead.index(criterion[0])
+            
+
+
+
+    #     if (eval(toBeEvaluated)):
+
+    #     else:
+    #         criterion = treeResult.nodes[1].attribute.split()
+    #         print(criterion)
+    #         print(dataHead)
+    #         print("Tested: ", testedData)
+
+    #         attributeIndex = dataHead.index(criterion[0])
+    #         toBeEvaluated = str(testedData[attributeIndex]) + criterion[1] + criterion[2]
+    #         print(toBeEvaluated)
+    #         print(eval(toBeEvaluated))
+    
+
+        
+
 
 
 
 
 # Gata data of attributes, target, and their names
-dataHead, data = getCSVData("iris.csv")
+dataHead, data = getCSVData("tennis.csv")
 prune(dataHead, data)
 # dataHead, data = getCSVData("tennis.csv")
 
