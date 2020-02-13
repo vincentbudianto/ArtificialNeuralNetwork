@@ -173,8 +173,6 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, clas
 # Create a basic fitying algorithn
 # After translating X and Y
 def fit(dataX, dataY, dataHead, attributeDictionary, classDictionary):
-    decisionTree = DecisionTree()
-
     # Checking current entropy
     currentEntropy = f.entropyFunction(dataY)
     print("Initial entropy:", currentEntropy)
@@ -190,6 +188,7 @@ def fit(dataX, dataY, dataHead, attributeDictionary, classDictionary):
 
 
 # Get data and head
+# dataHead, data = getCSVData("iris.csv")
 dataHead, data = getCSVData("tennis.csv")
 # Get x and y
 newX, newY = splitXY(dataHead, data)
