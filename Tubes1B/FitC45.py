@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import Function as f
 import copy as cp
+import random
 from DecisionTree import DecisionTree
 
 # Get data from csv
@@ -283,7 +284,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
         for i in range(len(bestClassContainer)):
             # Set next old attribute
             if (attributeIsDiscrete[bestIdx]):
-                nextAttribute = bestAttribute + " = " + str(attributeDictionary[bestIdx][i])
+                nextAttribute = bestAttribute + " == " + str(attributeDictionary[bestIdx][i])
             else:
                 if (i == 0):
                     impurity = [[x,bestTargetContainer[0].count(x)] for x in set(bestTargetContainer[0])]
@@ -332,6 +333,7 @@ def prune(dataHead, data):
 
     # Split data 80 : 20
     shuffledData = cp.copy(data)
+    random.shuffle(shuffledData)
     # Split 80
     lenData = len(shuffledData) * 4 // 5
     # Split 20
@@ -352,9 +354,20 @@ def prune(dataHead, data):
     treeResult = fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
 
     treeResult.printTree()
-    rule = treeToRules(treeResult, dataHead)
-    print(rule)
+    ruleList = treeToRules(treeResult, dataHead)
+    functionRules = []
+    for i in range(len(ruleList)):
+        functionRules.append(createRule(ruleList[i]))
 
+    errorCount = 0
+    for i in range(len(testingData)):
+        res = testResult(functionRules, testingData[i], dataHead)
+        if (res != testingData[i][-1]):
+            errorCount += 1
+    print()
+    print(errorCount)
+
+    
     
 
 
@@ -379,6 +392,29 @@ def treeToRules(treeResult, attributeList, lastRule = []):
         rule.append(treeResult.root)
         return rule
     
+def createRule(rules):
+    def resultRule(testedData, dataHead):
+        isTrue = True
+        for i in range(len(rules) - 1):
+            tempRule = rules[i].split()
+            idx = dataHead.index(tempRule[0])
+            toBeEvaluated = "\"" + str(testedData[idx]) + "\" " + tempRule[1] + " \"" + str(tempRule[2]) + "\""
+            if (not eval(toBeEvaluated)):
+                isTrue = False
+                break
+        if (isTrue):
+            return testedData[-1]
+        else:
+            return -9999
+    return resultRule
+
+def testResult(functionRules, testedData, dataHead):
+    for i in range(len(functionRules)):
+        tempResult = functionRules[i](testedData, dataHead)
+        if (tempResult != -9999):
+            return tempResult
+    return 0
+
     # Get testing data  
 
     
@@ -423,7 +459,7 @@ def treeToRules(treeResult, attributeList, lastRule = []):
 
 
 # Gata data of attributes, target, and their names
-dataHead, data = getCSVData("tennis.csv")
+dataHead, data = getCSVData("iris.csv")
 prune(dataHead, data)
 # dataHead, data = getCSVData("tennis.csv")
 
