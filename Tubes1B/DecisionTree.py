@@ -48,6 +48,10 @@ class DecisionTree:
                 for node in self.nodes:
                     node.printTree(tabCounter + 1)
 
+    # Pass through tree
+    def classifyDatum(self, datum):
+        print(self.attribute)
+
 # Test data
 # tree = DecisionTree()
 # tree.setRootValue("test")

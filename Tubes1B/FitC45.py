@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import Function as f
+import copy as cp
 from DecisionTree import DecisionTree
 
 # Get data from csv
@@ -20,6 +21,13 @@ def splitXY(data):
         newY.append(datum[-1])
     return (newX, newY)
 
+# Merging array X and Y (merging attributes array and target array)
+def attributeMerger(dataX, dataY):
+    data = []
+    for i in range(len(dataX)):
+        dataX[i].append(dataY[i])
+    return dataX
+
 # Translates target values
 # Save the value in classDictionary and codes the value
 def translateY(dataTarget):
@@ -35,7 +43,7 @@ def translateY(dataTarget):
 # Translates the attronite values
 # Saves the value in attributeDictionary and codes the value
 # If is continuous, then
-def translateX(data):
+def createAttributeandIsDiscrete(data):
     attributeIsDiscrete = []
     attributeDictionary = []
     for i in range(len(data[0]) - 1):
@@ -54,9 +62,6 @@ def translateX(data):
             for j in range(len(data)):
                 if data[j][i] not in tempDictionary:
                     tempDictionary.append(data[j][i])
-                    data[j][i] = len(tempDictionary) - 1
-                else:
-                    data[j][i] = tempDictionary.index(data[j][i])
 
         # If the data is continuous, change data into splitters
         else:
@@ -67,21 +72,35 @@ def translateX(data):
                 # If the Y value is different, then assign splitter
                 if data[j][-1] != data[j - 1][-1] and data[j][i] != data[j - 1][i]:
                     split = (data[j][i] + data[j - 1][i]) / 2
-                    for k in range(firstIdx, j):
-                        data[k][i] = len(tempDictionary)
                     tempDictionary.append(split)
-                    firstIdx = j
-
-            # Encode the last value
+            
             tempDictionary.append(data[len(data) - 1][i] + 0.5)
-            for j in range(firstIdx, len(data)):
-                data[j][i] = len(tempDictionary) - 1
-
 
         attributeDictionary.append(tempDictionary)
         attributeIsDiscrete.append(isDiscrete)
 
-    return (data, attributeDictionary, attributeIsDiscrete)
+    return (attributeDictionary, attributeIsDiscrete)
+
+
+# Translates the attronite values
+# Saves the value in attributeDictionary and codes the value
+# If is continuous, then
+def translateX(data, attributeDictionary, attributeIsDiscrete):
+    # Testing 
+    for i in range(len(data[0]) - 1):
+        if (attributeIsDiscrete[i]):
+            for j in range(len(data)):
+                data[j][i] = attributeDictionary[i].index(data[j][i])
+
+        # If the data is continuous, change data into splitters
+        else:
+            for j in range(len(data)):
+                # Loop through the nodes
+                for k in range(len(attributeDictionary[i])):
+                    if (data[j][i] <= attributeDictionary[i][k]):
+                        data[j][i] = k
+                        break
+    return data
 
 # Create a basic fitying algorithn
 # After translating X and Y
@@ -98,7 +117,7 @@ def fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classD
     # print("Attributes:", usableAttribute)
     result = dataAssessment(dataX, dataY, currentEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute)
     print('Tree Result:')
-    result.printTree()
+    return result
 
 # Data assessment (returns the result decision tree)
 def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute, oldAttribute = None):
@@ -270,12 +289,12 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
                     impurity = [[x,bestTargetContainer[0].count(x)] for x in set(bestTargetContainer[0])]
 
                     if (len(impurity) > 1):
-                        nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + ": " + str(impurity[0][1])
+                        nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
 
                         for j in range (1, len(impurity)):
                             nextAttribute += "/" + str(impurity[j][1])
                     else:
-                        nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + ": " + str(impurity[0][1])
+                        nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
 
                     # print(nextAttribute)
                     # print("bestTargetContainer:", len(bestTargetContainer[0]))
@@ -285,12 +304,12 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
                     impurity = [[x,bestTargetContainer[1].count(x)] for x in set(bestTargetContainer[1])]
 
                     if (len(impurity) > 1):
-                        nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + ": " + str(impurity[0][1])
+                        nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
 
                         for j in range (1, len(impurity)):
                             nextAttribute += "/" + str(impurity[j][1])
                     else:
-                        nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + ": " + str(impurity[0][1])
+                        nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
 
                     # print(nextAttribute)
                     # print("bestTargetContainer:", len(bestTargetContainer[1]))
@@ -305,14 +324,50 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
         return result
 
 
+def prune(dataHead, data):
+    # Generate tree from training data
+    attributeDictionary, attributeIsDiscrete = createAttributeandIsDiscrete(data)
+
+    # Split data 80 : 20
+    shuffledData = cp.copy(data)
+    lenData = len(shuffledData) * 4 // 5
+    restLenData = (len(shuffledData) - lenData) * -1
+    trainingData = shuffledData[:lenData]
+    testingData = shuffledData[restLenData:]
+
+    # Parsing training data
+    trainingData = translateX(data, attributeDictionary, attributeIsDiscrete)
+
+    # Generate tree from training data
+    dataX, dataY = splitXY(trainingData)
+    dataY, classDictionary = translateY(dataY)
+    treeResult = fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
+
+    treeResult.printTree()
+    
+    # Get testing data  
+    print()
+    print(treeResult.nodes[0].attribute)
+    testedData = testingData[0]
+
+    criterion = treeResult.nodes[0].attribute.split()
+    print(criterion)
+    print(dataHead)
+    print("Tested: ", testedData)
+
+    attributeIndex = dataHead.index(criterion[0])
+    toBeEvaluated = str(testedData[attributeIndex]) + criterion[1] + criterion[2]
+    print(toBeEvaluated)
+    print(eval(toBeEvaluated))
+
+
+
 
 # Gata data of attributes, target, and their names
 dataHead, data = getCSVData("iris.csv")
+prune(dataHead, data)
 # dataHead, data = getCSVData("tennis.csv")
-data, attributeDictionary, attributeIsDiscrete = translateX(data)
-dataX, dataY = splitXY(data)
-dataY, classDictionary = translateY(dataY)
-fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
+
 
 # print(dataX)
 # print(dataY)
