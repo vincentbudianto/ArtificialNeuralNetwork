@@ -267,15 +267,6 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
             if not attributeIsDiscrete[i]:
                 bestSplitted = tempSplitted
 
-    # Know best splitting area for best information gain
-    # If no information is gained then
-    # Change the zero if the pruning is based on minimum information gain
-    # print(bestAttribute)
-    # if (bestAttribute == "petal.width"):
-    #     print(bestClassContainer)
-    #     print(bestTargetContainer)
-    #     print(bestSplitted)
-    #     print(bestInformationGainRatio)
     if (bestInformationGainRatio == 0):
         # Count most common value
         result.setRootValue(classDictionary[0])
@@ -355,19 +346,62 @@ def prune(dataHead, data, dataRaw):
     dataY, classDictionary = translateY(dataY)
     treeResult = fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
 
+    # Create set of rules
     treeResult.printTree()
     ruleList = treeToRules(treeResult, dataHead)
+    print(ruleList)
     functionRules = []
     for i in range(len(ruleList)):
         functionRules.append(createRule(ruleList[i]))
 
+    # Checking the amount of errors
     errorCount = 0
     for i in range(len(testingData)):
         res = testResult(functionRules, testingData[i], dataHead)
         if (res != testingData[i][-1]):
             errorCount += 1
+
+    print(testingData)
+    
     print()
     print(errorCount)
+    
+    # Testing pruning....
+    index = 0
+    failCounter = 0
+    while len(ruleList[index]) > 1:
+        tempRuleList = cp.copy(ruleList[index])
+        tempFunctionRules = cp.copy(functionRules)
+        tempRuleList.remove(tempRuleList[-2])
+        
+        tempFunctionRules[index] = createRule(ruleList[index])
+
+        tempErrorCount = 0
+        for i in range(len(testingData)):
+            tempRes = testResult(functionRules, testingData[i], dataHead)
+            if (tempRes != testingData[i][-1]):
+                tempErrorCount += 1
+        
+        if (tempErrorCount < errorCount):
+            ruleList[index] = tempRuleList
+            functionRules = tempFunctionRules
+            errorCount = tempErrorCount
+        else:
+            failCounter += 1
+        
+        if index == len(ruleList) - 1:
+            index = 0
+        else:
+            index += 1
+        
+        if failCounter == len(ruleList):
+            break
+    
+    print(ruleList)
+    print(errorCount)
+        
+
+
 
 
 def treeToRules(treeResult, attributeList, lastRule = []):
@@ -415,7 +449,7 @@ def testResult(functionRules, testedData, dataHead):
 
 
 # Gata data of attributes, target, and their names
-dataHead, data, dataRaw = getCSVData("tennis.csv")
+dataHead, data, dataRaw = getCSVData("iris.csv")
 prune(dataHead, data, dataRaw)
 # dataHead, data = getCSVData("tennis.csv")
 
