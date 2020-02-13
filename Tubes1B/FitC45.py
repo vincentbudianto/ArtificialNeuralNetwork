@@ -355,6 +355,10 @@ def prune(dataHead, data):
     rule = treeToRules(treeResult, dataHead)
     print(rule)
 
+    
+
+
+
 def treeToRules(treeResult, attributeList, lastRule = []):
     rule = lastRule
     if (treeResult.attribute is not None):
