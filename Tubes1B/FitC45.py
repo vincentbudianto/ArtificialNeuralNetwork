@@ -8,9 +8,10 @@ from DecisionTree import DecisionTree
 # Get data from csv
 def getCSVData(fileName):
     data = pd.read_csv(fileName)
-    dataHead = list(data.columns)
-    data = np.array(data)
-    return (dataHead, data)
+    dataCopy = cp.copy(data)
+    dataHead = list(dataCopy.columns)
+    dataProcessed = np.array(dataCopy)
+    return (dataHead, dataProcessed, data)
 
 # Splitters and translaters
 # Data splitter (splits X and Y (attributes and target attributes))
@@ -106,12 +107,10 @@ def translateX(data, attributeDictionary, attributeIsDiscrete):
 # Create a basic fitying algorithn
 # After translating X and Y
 def fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary):
-    # decisionTree = DecisionTree()
-
     # Checking current entropy
     currentEntropy = f.entropyFunction(dataY)
     # print()
-    # print("Initial entropy:", currentEntropy)
+    # print("Initial entropy:", currentEntropy) 
 
     # Getting tree through recursive function
     usableAttribute = dataHead[:-1]
@@ -164,6 +163,15 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
 
     # For each attributes
     for i in range(len(usableAttribute)):
+        # If the attributes in dataX is the same, then... pass the attribute
+        tempContainer = []
+        for j in range(len(dataX)):
+            if (dataX[j][i] not in tempContainer):
+                tempContainer.append(dataX[j][i])
+        if (len(tempContainer) <= 1):
+            continue
+
+
         # Start information gain
         informationGainRatio = 0
 
@@ -192,13 +200,16 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
 
 
             # Find the total entropy
-            totalEntropy = 0
-            for j in range(len(splittedClassContainer)):
-                dataCount = len(splittedClassContainer[j])
-                totalEntropy += dataCount / len(dataX) * entropyContainer[j]
+            if (len(dataX) > 0):
+                totalEntropy = 0
+                for j in range(len(splittedClassContainer)):
+                    dataCount = len(splittedClassContainer[j])
+                    totalEntropy += dataCount / len(dataX) * entropyContainer[j]
 
-            # Get information gain
-            informationGainRatio = (oldEntropy - totalEntropy) / f.splitInInformation(splittedClassContainer, len(dataX))
+                # Get information gain
+                informationGainRatio = (oldEntropy - totalEntropy) / f.splitInInformation(splittedClassContainer, len(dataX))
+            else:
+                informationGainRatio = -1
 
         else:
             # Breakpoints are assigned in the attributeDictionary
@@ -282,6 +293,11 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
 
         # Recursively add the next tree node based on this...
         for i in range(len(bestClassContainer)):
+            if len(bestClassContainer) == 0:
+                # Count most common value
+                maxIdx = tempYCounter.index(max(tempYCounter))
+                result.setRootValue(classDictionary[dataY[maxIdx]])
+                return result
             # Set next old attribute
             if (attributeIsDiscrete[bestIdx]):
                 nextAttribute = bestAttribute + " == " + str(attributeDictionary[bestIdx][i])
@@ -297,10 +313,6 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
                     else:
                         nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
 
-                    # print(nextAttribute)
-                    # print("bestTargetContainer:", len(bestTargetContainer[0]))
-                    # print("bestTargetContainer:", bestTargetContainer[0])
-                    # print(*impurity, sep="/")
                 else:
                     impurity = [[x,bestTargetContainer[1].count(x)] for x in set(bestTargetContainer[1])]
 
@@ -326,31 +338,27 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
 
 # def createRuleSet()
 
-
-def prune(dataHead, data):
+#################
+# MAIN FUNCTION #
+#################
+def prune(dataHead, data, dataRaw):
     # Generate tree from training data
     attributeDictionary, attributeIsDiscrete = createAttributeandIsDiscrete(data)
 
-    # Split data 80 : 20
-    shuffledData = cp.copy(data)
-    random.shuffle(shuffledData)
-    # Split 80
-    lenData = len(shuffledData) * 4 // 5
-    # Split 20
-    restLenData = (len(shuffledData) - lenData) * -1
+    # Splits the element based on 
+    trainingData = dataRaw.sample(frac=0.8)
+    
 
-    trainingData = shuffledData[:lenData]
-    testingData = shuffledData[restLenData:]
+    testingData = dataRaw.drop(trainingData.index)
+    trainingData = np.array(trainingData)
+    testingData = np.array(testingData)
 
     # Parsing training data
-    trainingData = translateX(data, attributeDictionary, attributeIsDiscrete)
+    trainingData = translateX(trainingData, attributeDictionary, attributeIsDiscrete)
 
     # Generate tree from training data
     dataX, dataY = splitXY(trainingData)
     dataY, classDictionary = translateY(dataY)
-    # print(dataX)
-    # print(dataY)
-    # print(classDictionary)
     treeResult = fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
 
     treeResult.printTree()
@@ -366,10 +374,6 @@ def prune(dataHead, data):
             errorCount += 1
     print()
     print(errorCount)
-
-    
-    
-
 
 
 def treeToRules(treeResult, attributeList, lastRule = []):
@@ -403,7 +407,7 @@ def createRule(rules):
                 isTrue = False
                 break
         if (isTrue):
-            return testedData[-1]
+            return rules[-1]
         else:
             return -9999
     return resultRule
@@ -413,54 +417,12 @@ def testResult(functionRules, testedData, dataHead):
         tempResult = functionRules[i](testedData, dataHead)
         if (tempResult != -9999):
             return tempResult
-    return 0
-
-    # Get testing data  
-
-    
-    # # Find the class of tested atrribute
-    # for i in range(len(testingData)):
-    #     testedData = testingData[i]
-    #     criterion = treeResult.nodes[0].attribute.split()
-    #     print(criterion)
-    #     print(dataHead)
-    #     print("Tested: ", testedData)
-
-    #     attributeIndex = dataHead.index(criterion[0])
-    #     toBeEvaluated = str(testedData[attributeIndex]) + criterion[1] + criterion[2]
-    #     print(toBeEvaluated)
-    #     print(eval(toBeEvaluated))
-
-    #     for i in range(len(treeResult.nodes)):
-    #         criterion = treeResult.nodes[i].attribute.split()
-    #         attributeIndex = dataHead.index(criterion[0])
-            
-
-
-
-    #     if (eval(toBeEvaluated)):
-
-    #     else:
-    #         criterion = treeResult.nodes[1].attribute.split()
-    #         print(criterion)
-    #         print(dataHead)
-    #         print("Tested: ", testedData)
-
-    #         attributeIndex = dataHead.index(criterion[0])
-    #         toBeEvaluated = str(testedData[attributeIndex]) + criterion[1] + criterion[2]
-    #         print(toBeEvaluated)
-    #         print(eval(toBeEvaluated))
-    
-
-        
-
-
-
+    return -9999
 
 
 # Gata data of attributes, target, and their names
-dataHead, data = getCSVData("iris.csv")
-prune(dataHead, data)
+dataHead, data, dataRaw = getCSVData("tennis.csv")
+prune(dataHead, data, dataRaw)
 # dataHead, data = getCSVData("tennis.csv")
 
 
