@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import Function as f
 from DecisionTree import DecisionTree
+from collections import defaultdict
 
 # Get data from csv
 def getCSVData(fileName):
@@ -173,8 +174,6 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, clas
 # Create a basic fitying algorithn
 # After translating X and Y
 def fit(dataX, dataY, dataHead, attributeDictionary, classDictionary):
-    decisionTree = DecisionTree()
-
     # Checking current entropy
     currentEntropy = f.entropyFunction(dataY)
     print("Initial entropy:", currentEntropy)
@@ -188,11 +187,37 @@ def fit(dataX, dataY, dataHead, attributeDictionary, classDictionary):
 
     # Finding nodes that is most effective
 
+# Procedure that feels missing values for each attributes in dataX
+def feelEmptyData(dataX):
+    dataXSample = dataX[0]
+    # do for each attribute
+    for attrIdx in range(len(dataXSample)):
+        attrCountDict = defaultdict(int)
+        missingValueRows = []
+
+        # do for each row of the data
+        for rowIdx, eachRow in enumerate(dataX):
+            cellValue = eachRow[attrIdx]
+
+            # if not missing, put into the counter
+            if not pd.isna(cellValue):
+                attrCountDict[cellValue] += 1
+            else: # if missing put into list that contain index of rows having the missing value
+                missingValueRows.append(rowIdx)
+
+        # get most common value for current attr
+        mostCommonValueAttr = max(attrCountDict, key=attrCountDict.get)
+
+        # for those missing the value, replace the nan with the most common value
+        for missingRowIdx in missingValueRows:
+            dataX[missingRowIdx][attrIdx] = mostCommonValueAttr
 
 # Get data and head
+# dataHead, data = getCSVData("iris.csv")
 dataHead, data = getCSVData("tennis.csv")
 # Get x and y
 newX, newY = splitXY(dataHead, data)
+feelEmptyData(newX)
 newY, classDictionary = translateY(newY)
 newX, attributeDictionary = translateX(newX)
 fit(newX, newY, dataHead, attributeDictionary, classDictionary)

@@ -41,12 +41,18 @@ class DecisionTree:
                 for i in range(tabCounter - 1):
                     print("|  ", end = "")
                 print(self.attribute)
-            for i in range(tabCounter):
-                print("|  ", end = "")
-            print(self.root)
-            if len(self.nodes) != 0:
+            if len(self.nodes)==0:
+                for i in range(tabCounter):
+                    print("|  ", end = "")
+                print(self.root)
+            else:
                 for node in self.nodes:
                     node.printTree(tabCounter + 1)
+
+
+    # Pass through tree
+    def classifyDatum(self, datum):
+        print(self.attribute)
 
 # Test data
 # tree = DecisionTree()
