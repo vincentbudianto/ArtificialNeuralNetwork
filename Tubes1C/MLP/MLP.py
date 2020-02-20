@@ -10,6 +10,22 @@ MLP class as a whole
 - LearningRate  : Learning rate of the class
 - Error         : The error function
 - InputSize     : Size of the input for training
+
+Terdapat beberapa perubahan yang dilakukan dari desain MLP sebelumnya...
+Maaf...
+
+Jadi weight disimpan pada node target, bukan pada node source
+Misalnya:
+Node j -> Node k
+Maka value dari Node k = LayerK.Weight[k][j] * LayerJ.Value[j]
+
+Yang belum diimplementasikan:
+- Error function (menghitung error untuk setiap mini-batch jika < error, stop proses learning)
+- Full learning (bukan 1 x epoch)
+- Testing akurasi
+- Mungkin ada error lain dalam kode ini yang belum terdeteksi :)
+
+Setiap node non-output memiliki bias senilai sigmoid(1)
 '''
 
 class MLP:
@@ -32,7 +48,7 @@ class MLP:
         for i in range(len(layers) - 1):
             layers[i].node_count += 1
             layers[i].value = [0] * layers[i].node_count
-            layers[i].value[0] = 1
+            layers[i].value[0] = sigmoid(1)
             layers[i].delta = [0] * layers[i].node_count
 
         # Last value
@@ -110,31 +126,36 @@ class MLP:
     def backPropagation(self, targetValue):
         # Output layer
         lastLayer = self.layers[len(self.layers) - 1]
+
         # Update the value of the delta
         for i in range(len(lastLayer.value)):
-            lastLayer.delta[i] = lastLayer[i].value * (1 - lastLayer[i].value) * (targetValue[i] - lastLayer[i])
+            lastLayer.delta[i] = lastLayer.value[i] * (1 - lastLayer.value[i]) * (targetValue[i] - lastLayer.value[i])
 
         # Update the value of deltaweight
         for i in range(len(lastLayer.weight)):
-            for j in range(len(lastLayer.weigth[i])):
-                lastLayer.deltaWeight[i][j] += self.learningRate * lastLayer.delta[i] * self.layers[len(self.layers) - 2].value[k]
+            for j in range(len(lastLayer.weight[i])):
+                lastLayer.deltaWeight[i][j] += self.learningRate * lastLayer.delta[i] * self.layers[len(self.layers) - 2].value[j]
         
         # Hidden layers
-        for i in range(len(self.layers) - 1, 1, -1):
+        for i in range(len(self.layers) - 2, 0, -1):
             # Update the value of the delta
             for j in range(len(self.layers[i].value)):
                 totalSigma = 0
                 minValue = 1
                 if (i == len(self.layers) - 1):
                     minValue = 0
-                for k in range(minValue, len(self.layers[i + 1].value)):
+                
+                # Loop for every target node
+                for k in range(len(self.layers[i + 1].value)):
                     totalSigma += self.layers[i + 1].weight[k][j] * self.layers[i + 1].delta[k]
-                self.layers[i].delta[j] = self.layers[i].value * (1 - self.layers[i].value) * totalSigma
+                self.layers[i].delta[j] = self.layers[i].value[j] * (1 - self.layers[i].value[j]) * totalSigma
+                
             
-            # Update the value of deltaweight
+            # Update the value of deltaweight node
             for j in range(len(self.layers[i].weight)):
                 for k in range(len(self.layers[i].weight[j])):
                     self.layers[i].deltaWeight[j][k] += self.learningRate * self.layers[i].delta[j] * self.layers[i - 1].value[k]
+
 
     '''
     Give prediction value
@@ -142,51 +163,26 @@ class MLP:
     def predictionValue(self):
         return self.layers[len(self.layers) - 1].value
     
+    
     '''
-    One epoch loop
+    One epoch loop. Splits data X and dataY by splitter
+    Then do a couple of mini-batches
+    Data = dataX dan dataY yang dikumpulkan per batch
+
     '''
-    def oneEpoch(self, dataX, dataY):
-        oldEntropy = cp.deepcopy(self.layers)
-        for i in range(dataX):
-            self.feedForward(dataX)
-            self.backPropagation(dataY)
-            self.flush(oldEntropy)
-        self.flushDelta()
-        
-            
-            
+    def oneEpoch(self, data, loopJump, outputCheck):
+        # Splits the data into mini-batches
+        for i in range(0, len(data)):
+            # Execute the learning for every data batch
+            for j in range(len(data[i * loopJump])):
+                oldLayer = cp.deepcopy(self.layers)
+                # Loop for every data... 
+                tempData = []
+                for k in range(len(data[i * loopJump].iloc[j]) - 1):
+                    tempData.append(data[i * loopJump].iloc[j][k])
+                self.feedForward(tempData)
+                self.backPropagation(outputCheck(data[i * loopJump].iloc[j][len(data[i * loopJump].iloc[j]) - 1]))
+                self.flush(oldLayer)
+            self.flushDelta()
 
 
-
-
-
-        
-
-layer0 = Layer(2, 0, 'sigmoid')
-layer1 = Layer(3, 1, 'sigmoid')
-layer2 = Layer(1, 2, 'sigmoid')
-print(layer0)
-layers = []
-layers.append(layer0)
-layers.append(layer1)
-layers.append(layer2)
-
-result = MLP(layers, 0.1)
-print(result.inputSize)
-for i in range(len(result.layers)):
-    print(result.layers[i].weight)
-    print(result.layers[i].deltaWeight)
-
-result.layers[1].deltaWeight[0][0] += 1
-result.layers[2].deltaWeight[0][0] += 1
-
-for i in range(len(result.layers)):
-    print(layers[i].weight)
-    print(layers[i].deltaWeight)
-
-result.flushDelta()
-
-for i in range(len(result.layers)):
-    print(layers[i].weight)
-    print(layers[i].deltaWeight)
-print(result.learningRate)
