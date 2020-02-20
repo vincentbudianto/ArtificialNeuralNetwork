@@ -10,6 +10,17 @@ import pandas as pd
 '''
 Layer generator
 Generates layer to be put in MLP class
+
+Current layer:
+    x   x
+    x   x   x
+GK  x   x   x
+    x   x
+
+Abaikan GK
+Layer paling kiri adalah keempat input dari 4 atribut iris.csv
+Layer tengah adalah hidden layer
+Layer output berfungsi sebagai yang dijelaskan di fungsi outputCheck
 '''
 def generateLayers(learningRate):
     layer0 = Layer(4, 0, 'sigmoid')

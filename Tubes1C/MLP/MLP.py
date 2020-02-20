@@ -22,6 +22,7 @@ Maka value dari Node k = LayerK.Weight[k][j] * LayerJ.Value[j]
 Yang belum diimplementasikan:
 - Error function (menghitung error untuk setiap mini-batch jika < error, stop proses learning)
 - Full learning (bukan 1 x epoch)
+- Prediction function (feed forward + cek nilai dari 2 node di layer terakhir + gunakan output check dari main.py)
 - Testing akurasi
 - Mungkin ada error lain dalam kode ini yang belum terdeteksi :)
 
