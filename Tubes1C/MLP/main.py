@@ -3,29 +3,32 @@ Main class
 Program runs from here....
 '''
 from MLP import MLP
-from Layer import Layer
+from Layer import Layer, ActivationFunction
 import pandas as pd
 
 
 '''
-Layer generator
-Generates layer to be put in MLP class
+Model generator
+Generates layer to be put in MLP class and return MLP Model
 
 Current layer:
-    x   x
-    x   x   x
-GK  x   x   x
-    x   x
+    x
+        x   x
+    x
+GK      x   x
+    x
+        x   x
+    x
 
 Abaikan GK
 Layer paling kiri adalah keempat input dari 4 atribut iris.csv
 Layer tengah adalah hidden layer
 Layer output berfungsi sebagai yang dijelaskan di fungsi outputCheck
 '''
-def generateLayers(learningRate):
-    layer0 = Layer(4, 0, 'sigmoid')
-    layer1 = Layer(4, 1, 'sigmoid')
-    layer2 = Layer(2, 2, 'sigmoid')
+def generateModel(learningRate):
+    layer0 = Layer(4, 0, 4, ActivationFunction.linear)
+    layer1 = Layer(3, 1, 4, ActivationFunction.sigmoid)
+    layer2 = Layer(3, 2, 3, ActivationFunction.sigmoid)
     print(layer0)
     layers = []
     layers.append(layer0)
@@ -39,7 +42,7 @@ Main function
 '''
 def main():
     # Read data from csv
-    data = pd.read_csv("../iris.csv")
+    data = pd.read_csv("iris.csv")
     dataHead = list(data.columns)
 
     # Shuffle data
@@ -47,7 +50,7 @@ def main():
 
     # Creates data by 10 (indexes of data)
     dataSplitCount = 10
-    dataDict = {n: data.iloc[n:n+dataSplitCount, :] 
+    dataDict = {n: data.iloc[n:n+dataSplitCount, :]
            for n in range(0, len(data), dataSplitCount)}
 
     # Do data training
@@ -64,7 +67,7 @@ def main():
         else:
             return [1, 1]
 
-    model = generateLayers(0.1)
+    model = generateModel(0.1)
     model.oneEpoch(dataDict, dataSplitCount, nodeOutputCheck)
 
     # Test result
@@ -74,7 +77,7 @@ def main():
 
 main()
 
-    
+
 
 '''
 Create the output dictionary
@@ -96,7 +99,7 @@ def outputCheck(a, b):
 # Just for test
     # model = MLP(layers, 0.1)
     # print(result.inputSize)
-    
+
     # for i in range(len(model.layers)):
     #     print(model.layers[i].weight)
     #     print(model.layers[i].deltaWeight)
@@ -116,4 +119,3 @@ def outputCheck(a, b):
     # print(model.learningRate)
 
 
-    

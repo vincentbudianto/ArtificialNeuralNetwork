@@ -1,4 +1,6 @@
+# from Layer import Layer
 from Layer import Layer
+from typing import List
 from Function import sigmoid, mse
 
 import copy as cp
@@ -9,7 +11,7 @@ MLP class as a whole
 - Layers        : Stores list of layers (starting from the starting layer)
 - LearningRate  : Learning rate of the class
 - Error         : The error function
-- InputSize     : Size of the input for training
+- InputNodeSize : Size of the input for training
 
 Terdapat beberapa perubahan yang dilakukan dari desain MLP sebelumnya...
 Maaf...
@@ -33,9 +35,11 @@ class MLP:
     '''
     Constructor
     '''
-    def __init__(self, layers, learningRate):
-        self.inputSize = layers[0].node_count
-        self.layers = self.generateWeightsandBias(layers)
+    def __init__(self, layers: List[Layer], learningRate):
+        INPUT_LAYER = 0
+        self.inputNodeSize = layers[INPUT_LAYER].node_count
+        self.layers : List[Layer] = layers
+        # self.layers = self.generateWeightsAndBias(layers)
         self.learningRate = learningRate
         self.error = None
 
@@ -44,17 +48,17 @@ class MLP:
     - Semua weight dari layer dengan nilai lebih dari 1 diberi nilai 0
     - Setiap layer diberi sebuah node dengan value 1 (bias)
     '''
-    def generateWeightsandBias(self, layers):
+    def generateWeightsAndBias(self, layers):
         ## Generate bias, value, and delta
-        for i in range(len(layers) - 1):
-            layers[i].node_count += 1
-            layers[i].value = [0] * layers[i].node_count
-            layers[i].value[0] = sigmoid(1)
-            layers[i].delta = [0] * layers[i].node_count
+        for layerIdx in range(len(layers) - 1):
+            layers[layerIdx].node_count += 1 #for bias layer
+            layers[layerIdx].value = [0] * layers[layerIdx].node_count
+            layers[layerIdx].value[0] = sigmoid(1)
+            layers[layerIdx].delta = [0] * layers[layerIdx].node_count
 
         # Last value
-        layers[len(layers) - 1].value = [0] * layers[len(layers) - 1].node_count
-        layers[len(layers) - 1].delta = [0] * layers[len(layers) - 1].node_count
+        layers[-1].value = [0] * layers[len(layers) - 1].node_count
+        layers[-1].delta = [0] * layers[len(layers) - 1].node_count
 
         ## Generate weight
         for i in range(1, len(layers)):
@@ -80,7 +84,7 @@ class MLP:
         for i in range(1, len(self.layers)):
             for j in range(len(self.layers[i].weight)):
                 self.layers[i].weight = oldLayer[i].weight
-    
+
     '''
     Flush after every batch
     Add the value of to the delta to the layers
@@ -91,31 +95,37 @@ class MLP:
                 for k in range(len(self.layers[i].weight[j])):
                     self.layers[i].weight[j][k] += self.layers[i].deltaWeight[j][k]
                     self.layers[i].deltaWeight[j][k] = 0
-    
+
     '''
     Feed forward algorithm
     Adds the value from the beginning of the node to reach the output value
     '''
     def feedForward(self, data):
         # First layer
-        for i in range(1, len(self.layers[0].value)):
-            self.layers[0].value[i] = data[i - 1]
+        self.layers[0].getOutputFromInput(data)
+        # for i in range(1, len(self.layers[0].value)):
+        #     self.layers[0].value[i] = data[i - 1]
 
-        # Hidden layers
-        for i in range(1, len(self.layers) - 1):
-            for j in range(1, len(self.layers[i].weight)):
-                self.layers[i].value[j] = 0
-                for k in range(len(self.layers[i].weight[j])):
-                    self.layers[i].value[j] += self.layers[i].weight[j][k] * self.layers[i - 1].value[k]
-                self.layers[i].value[j] = sigmoid(self.layers[i].value[j])
-        
+        # Hidden layers and output layer
+        for layerIdx in range(1, len(self.layers)):
+            prevLayerOutput = self.layers[layerIdx-1].getOutput()
+            self.layers[layerIdx].insertInput(prevLayerOutput)
+            self.layers[layerIdx].calculateOutput(prevLayerOutput)
+
+        # for i in range(1, len(self.layers) - 1):
+        #     for j in range(1, len(self.layers[i].weight)):
+        #         self.layers[i].value[j] = 0
+        #         for k in range(len(self.layers[i].weight[j])):
+        #             self.layers[i].value[j] += self.layers[i].weight[j][k] * self.layers[i - 1].value[k]
+        #         self.layers[i].value[j] = sigmoid(self.layers[i].value[j])
+
         # Output layer
-        for j in range(len(self.layers[len(self.layers) - 1].weight)):
-            self.layers[len(self.layers) - 1].value[j] = 0
-            for k in range(len(self.layers[len(self.layers) - 1].weight[j])):
-                self.layers[len(self.layers) - 1].value[j] += self.layers[len(self.layers) - 1].weight[j][k] * self.layers[len(self.layers) - 1 - 1].value[k]
-            self.layers[len(self.layers) - 1].value[j] = sigmoid(self.layers[len(self.layers) - 1].value[j])
-    
+        # for j in range(len(self.layers[len(self.layers) - 1].weight)):
+        #     self.layers[len(self.layers) - 1].value[j] = 0
+        #     for k in range(len(self.layers[len(self.layers) - 1].weight[j])):
+        #         self.layers[len(self.layers) - 1].value[j] += self.layers[len(self.layers) - 1].weight[j][k] * self.layers[len(self.layers) - 1 - 1].value[k]
+        #     self.layers[len(self.layers) - 1].value[j] = sigmoid(self.layers[len(self.layers) - 1].value[j])
+
 
     '''
     Back propagation algorithm
@@ -136,7 +146,7 @@ class MLP:
         for i in range(len(lastLayer.weight)):
             for j in range(len(lastLayer.weight[i])):
                 lastLayer.deltaWeight[i][j] += self.learningRate * lastLayer.delta[i] * self.layers[len(self.layers) - 2].value[j]
-        
+
         # Hidden layers
         for i in range(len(self.layers) - 2, 0, -1):
             # Update the value of the delta
@@ -145,13 +155,13 @@ class MLP:
                 minValue = 1
                 if (i == len(self.layers) - 1):
                     minValue = 0
-                
+
                 # Loop for every target node
                 for k in range(len(self.layers[i + 1].value)):
                     totalSigma += self.layers[i + 1].weight[k][j] * self.layers[i + 1].delta[k]
                 self.layers[i].delta[j] = self.layers[i].value[j] * (1 - self.layers[i].value[j]) * totalSigma
-                
-            
+
+
             # Update the value of deltaweight node
             for j in range(len(self.layers[i].weight)):
                 for k in range(len(self.layers[i].weight[j])):
@@ -163,8 +173,8 @@ class MLP:
     '''
     def predictionValue(self):
         return self.layers[len(self.layers) - 1].value
-    
-    
+
+
     '''
     One epoch loop. Splits data X and dataY by splitter
     Then do a couple of mini-batches
@@ -177,7 +187,7 @@ class MLP:
             # Execute the learning for every data batch
             for j in range(len(data[i * loopJump])):
                 oldLayer = cp.deepcopy(self.layers)
-                # Loop for every data... 
+                # Loop for every data...
                 tempData = []
                 for k in range(len(data[i * loopJump].iloc[j]) - 1):
                     tempData.append(data[i * loopJump].iloc[j][k])
