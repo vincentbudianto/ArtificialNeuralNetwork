@@ -215,9 +215,6 @@ class MLP:
             # Executes one epoch
             self.oneEpoch(data, loopJump, outputCheck)
             print("Error =", self.error)
-            print("Weight")
-            print(self.layers[1].weight)
-            print(self.layers[2].weight)
 
             # Checks if smaller than the minimum error
             if self.error < minError:
@@ -229,10 +226,11 @@ class MLP:
             else:
                 divergeCounter = 0
             # If the counter > 1
-            if divergeCounter == 3:
+            if divergeCounter == 10:
                 break
             
             # If doesn't diverge 3 times, and doesn't reach minimum error, resets error
+            lastLayerError = self.error
             self.error = 0
 
 

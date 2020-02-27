@@ -67,7 +67,7 @@ def main():
             return [1, 1, 1]
 
     model = generateModel(0.1)
-    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=10, minError=0.5)
+    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=50, minError=0.5)
 
     # Test result
     for i in range(len(model.layers)):
