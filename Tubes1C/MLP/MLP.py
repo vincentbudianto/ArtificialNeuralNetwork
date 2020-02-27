@@ -123,10 +123,10 @@ class MLP:
 
         # Update the value of the delta
         # For every value in lastLayer, get the delta by comparing it with the target value
-        for i in range(1, len(lastLayer.value)):
-            lastLayer.delta[i] = lastLayer.value[i] * (1 - lastLayer.value[i]) * (targetValue[i - 1] - lastLayer.value[i])
+        for i in range(1, len(lastLayer.output)):
+            lastLayer.delta[i] = lastLayer.output[i] * (1 - lastLayer.output[i]) * (targetValue[i - 1] - lastLayer.output[i])
 
-        # Update the value of deltaweight
+        # Update the output of deltaweight
         # i = list of weights of a certain node in layer
         # j = weight for layer in node
         for i in range(1, len(lastLayer.weight)):
@@ -136,29 +136,31 @@ class MLP:
         # Hidden layers
         # i = loop from second last node to second first node (all hidden layers)
         for i in range(len(self.layers) - 2, 0, -1):
-            # Update the value of the delta
-            # j = loop for every value in layers -> get the delta
-            for j in range(1, len(self.layers[i].value)):
+            # Update the output of the delta
+            # j = loop for every output in layers -> get the delta
+            for j in range(1, len(self.layers[i].output)):
                 totalSigma = 0
 
                 # Loop for every target node
-                # k = loop for every value in the next node (get the sigma of node)
-                for k in range(1, len(self.layers[i + 1].value)):
+                # k = loop for every output in the next node (get the sigma of node)
+                for k in range(1, len(self.layers[i + 1].output)):
                     totalSigma += self.layers[i + 1].weight[k][j] * self.layers[i + 1].delta[k]
-                self.layers[i].delta[j] = self.layers[i].value[j] * (1 - self.layers[i].value[j]) * totalSigma
+                self.layers[i].delta[j] = self.layers[i].output[j] * (1 - self.layers[i].output[j]) * totalSigma
 
 
-            # Update the value of deltaweight node
+            # Update the output of deltaweight nodes
+            # j = number of weight lists in a layer
             for j in range(1, len(self.layers[i].weight)):
+                # k = for every node that the weight list points to
                 for k in range(len(self.layers[i].weight[j])):
-                    self.layers[i].deltaWeight[j][k] += self.learningRate * self.layers[i].delta[j] * self.layers[i - 1].value[k]
+                    self.layers[i].deltaWeight[j][k] += self.learningRate * self.layers[i].delta[j] * self.layers[i - 1].output[k]
 
 
     '''
-    Give prediction value
+    Give prediction output
     '''
     def predictionValue(self):
-        return self.layers[len(self.layers) - 1].value
+        return self.layers[len(self.layers) - 1].output
 
 
     '''
