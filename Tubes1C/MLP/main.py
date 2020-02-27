@@ -26,7 +26,7 @@ Layer tengah adalah hidden layer
 Layer output berfungsi sebagai yang dijelaskan di fungsi outputCheck
 '''
 def generateModel(learningRate):
-    layer0 = Layer(4, 0, 4, ActivationFunction.linear)
+    layer0 = Layer(4, 0, 4, ActivationFunction.sigmoid)
     layer1 = Layer(3, 1, 4, ActivationFunction.sigmoid)
     layer2 = Layer(3, 2, 3, ActivationFunction.sigmoid)
     layers = []

@@ -164,7 +164,7 @@ class MLP:
 
             # Update the output of deltaweight nodes
             # j = number of weight lists in a layer
-            for j in range(1, len(self.layers[i].delta)):
+            for j in range(len(self.layers[i].delta)):
                 # k = for every node that the weight list points to
                 for k in range(len(self.layers[i].input)):
                     self.layers[i].deltaWeight[j][k] += self.learningRate * self.layers[i].delta[j] * self.layers[i].input[k]
@@ -215,6 +215,9 @@ class MLP:
             # Executes one epoch
             self.oneEpoch(data, loopJump, outputCheck)
             print("Error =", self.error)
+            print("Weight")
+            print(self.layers[1].weight)
+            print(self.layers[2].weight)
 
             # Checks if smaller than the minimum error
             if self.error < minError:
