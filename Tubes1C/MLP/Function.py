@@ -19,3 +19,7 @@ def mse(expected, reality):
 # Cross-entropy calculation per output
 def crossentropyCount(expected, reality):
 	return (reality * math.log10(expected) + (1 - reality) * math.log10(1 - expected))
+
+# Count the error (primitive way)
+def errorCount(expected, reality):
+	return math.pow((reality - expected), 2)

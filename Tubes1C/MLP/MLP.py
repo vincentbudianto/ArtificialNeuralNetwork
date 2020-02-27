@@ -1,7 +1,7 @@
 # from Layer import Layer
 from Layer import Layer
 from typing import List
-from Function import sigmoid, mse, crossentropyCount
+from Function import sigmoid, mse, crossentropyCount, errorCount
 
 import copy as cp
 
@@ -112,6 +112,15 @@ class MLP:
             self.layers[layerIdx].insertInput(prevLayerOutput)
             self.layers[layerIdx].calculateOutput(prevLayerOutput)
         
+        # Softmax
+        total = 0
+        for i in range(len(self.layers[-1].output)):
+            total += self.layers[-1].output[i]
+        
+        # Set the output value
+        for i in range(len(self.layers[-1].output)):
+            self.layers[-1].output[i] /= total
+        
 
     '''
     Back propagation algorithm
@@ -126,11 +135,11 @@ class MLP:
 
         # Cross-entropy
         # crossentropy = -(1/n) * Sigma(yi x log(Oouti) + (1 - yi) x log(1 - Oouti))
-        crossentropy = 0
+        tempError = 0
         for i in range(len(lastLayer.output)):
-            crossentropy += crossentropyCount(lastLayer.output[i], targetValue[i])
-        crossentropy = crossentropy / len(lastLayer.output) * -1
-        self.error += crossentropy
+            tempError += errorCount(lastLayer.output[i], targetValue[i])
+        tempError = tempError / len(lastLayer.output)
+        self.error += tempError
 
         # Update the value of the delta
         # For every value in lastLayer, get the delta by comparing it with the target value
