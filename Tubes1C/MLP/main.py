@@ -29,7 +29,6 @@ def generateModel(learningRate):
     layer0 = Layer(4, 0, 4, ActivationFunction.linear)
     layer1 = Layer(3, 1, 4, ActivationFunction.sigmoid)
     layer2 = Layer(3, 2, 3, ActivationFunction.sigmoid)
-    print(layer0)
     layers = []
     layers.append(layer0)
     layers.append(layer1)
@@ -59,16 +58,16 @@ def main():
     '''
     def nodeOutputCheck(str):
         if (str == "Veriscolor"):
-            return [1, 0]
+            return [0, 0, 1]
         elif (str == "Virginica"):
-            return [0, 1]
+            return [0, 1, 0]
         elif (str == "Setosa"):
-            return [0, 0]
+            return [1, 0, 0]
         else:
-            return [1, 1]
+            return [1, 1, 1]
 
     model = generateModel(0.1)
-    model.oneEpoch(dataDict, dataSplitCount, nodeOutputCheck)
+    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=10, minError=0.5)
 
     # Test result
     for i in range(len(model.layers)):

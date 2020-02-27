@@ -97,8 +97,6 @@ class MLP:
                 for k in range(len(self.layers[i].weight[j])):
                     self.layers[i].weight[j][k] += self.layers[i].deltaWeight[j][k]
                     self.layers[i].deltaWeight[j][k] = 0
-        # Reset error
-        self.error = 0
 
     '''
     Feed forward algorithm
@@ -113,6 +111,7 @@ class MLP:
             prevLayerOutput = self.layers[layerIdx-1].getOutput()
             self.layers[layerIdx].insertInput(prevLayerOutput)
             self.layers[layerIdx].calculateOutput(prevLayerOutput)
+        
 
     '''
     Back propagation algorithm
@@ -128,9 +127,9 @@ class MLP:
         # Cross-entropy
         # crossentropy = -(1/n) * Sigma(yi x log(Oouti) + (1 - yi) x log(1 - Oouti))
         crossentropy = 0
-        for i in range(1, len(lastLayer.output)):
-            crossentropy += crossentropyCount(lastLayer.output[i], targetValue[i - 1])
-        crossentropy = crossentropy / (len(lastLayer.output) - 1) * -1
+        for i in range(len(lastLayer.output)):
+            crossentropy += crossentropyCount(lastLayer.output[i], targetValue[i])
+        crossentropy = crossentropy / len(lastLayer.output) * -1
         self.error += crossentropy
 
         # Update the value of the delta
@@ -198,5 +197,44 @@ class MLP:
                 self.backPropagation(outputCheck(data[i * loopJump].iloc[j][len(data[i * loopJump].iloc[j]) - 1]))
                 self.flush(oldLayer)
             self.flushDelta()
+    
+
+    '''
+    Learning function
+    Executes the learning algorithm
+    Stop function:
+    - Reaches max iteration
+    - Reaches minimum error
+    - Starts to diverge
+    '''
+    def learn(self, data, loopJump, outputCheck, maxIteration, minError):
+        divergeCounter = 0
+        lastLayerError = 0
+
+        for i in range(maxIteration):
+            # Executes one epoch
+            self.oneEpoch(data, loopJump, outputCheck)
+            print("Error =", self.error)
+
+            # Checks if smaller than the minimum error
+            if self.error < minError:
+                break
+            
+            # Checks if it starts to diverge
+            if i > 0 and self.error > lastLayerError:
+                divergeCounter += 1
+            else:
+                divergeCounter = 0
+            # If the counter > 1
+            if divergeCounter == 3:
+                break
+            
+            # If doesn't diverge 3 times, and doesn't reach minimum error, resets error
+            self.error = 0
+
+
+            
+            
+
 
 
