@@ -103,29 +103,12 @@ class MLP:
     def feedForward(self, data):
         # First layer
         self.layers[0].getOutputFromInput(data)
-        # for i in range(1, len(self.layers[0].value)):
-        #     self.layers[0].value[i] = data[i - 1]
 
         # Hidden layers and output layer
         for layerIdx in range(1, len(self.layers)):
             prevLayerOutput = self.layers[layerIdx-1].getOutput()
             self.layers[layerIdx].insertInput(prevLayerOutput)
             self.layers[layerIdx].calculateOutput(prevLayerOutput)
-
-        # for i in range(1, len(self.layers) - 1):
-        #     for j in range(1, len(self.layers[i].weight)):
-        #         self.layers[i].value[j] = 0
-        #         for k in range(len(self.layers[i].weight[j])):
-        #             self.layers[i].value[j] += self.layers[i].weight[j][k] * self.layers[i - 1].value[k]
-        #         self.layers[i].value[j] = sigmoid(self.layers[i].value[j])
-
-        # Output layer
-        # for j in range(len(self.layers[len(self.layers) - 1].weight)):
-        #     self.layers[len(self.layers) - 1].value[j] = 0
-        #     for k in range(len(self.layers[len(self.layers) - 1].weight[j])):
-        #         self.layers[len(self.layers) - 1].value[j] += self.layers[len(self.layers) - 1].weight[j][k] * self.layers[len(self.layers) - 1 - 1].value[k]
-        #     self.layers[len(self.layers) - 1].value[j] = sigmoid(self.layers[len(self.layers) - 1].value[j])
-
 
     '''
     Back propagation algorithm
@@ -136,34 +119,37 @@ class MLP:
     '''
     def backPropagation(self, targetValue):
         # Output layer
-        lastLayer = self.layers[len(self.layers) - 1]
+        lastLayer = self.layers[:-1]
 
         # Update the value of the delta
-        for i in range(len(lastLayer.value)):
-            lastLayer.delta[i] = lastLayer.value[i] * (1 - lastLayer.value[i]) * (targetValue[i] - lastLayer.value[i])
+        # For every value in lastLayer, get the delta by comparing it with the target value
+        for i in range(1, len(lastLayer.value)):
+            lastLayer.delta[i] = lastLayer.value[i] * (1 - lastLayer.value[i]) * (targetValue[i - 1] - lastLayer.value[i])
 
         # Update the value of deltaweight
-        for i in range(len(lastLayer.weight)):
+        # i = list of weights of a certain node in layer
+        # j = weight for layer in node
+        for i in range(1, len(lastLayer.weight)):
             for j in range(len(lastLayer.weight[i])):
-                lastLayer.deltaWeight[i][j] += self.learningRate * lastLayer.delta[i] * self.layers[len(self.layers) - 2].value[j]
+                lastLayer.deltaWeight[i][j] += self.learningRate * lastLayer.delta[i] * self.layers[len(self.layers) - 2].output[j]
 
         # Hidden layers
+        # i = loop from second last node to second first node (all hidden layers)
         for i in range(len(self.layers) - 2, 0, -1):
             # Update the value of the delta
-            for j in range(len(self.layers[i].value)):
+            # j = loop for every value in layers -> get the delta
+            for j in range(1, len(self.layers[i].value)):
                 totalSigma = 0
-                minValue = 1
-                if (i == len(self.layers) - 1):
-                    minValue = 0
 
                 # Loop for every target node
-                for k in range(len(self.layers[i + 1].value)):
+                # k = loop for every value in the next node (get the sigma of node)
+                for k in range(1, len(self.layers[i + 1].value)):
                     totalSigma += self.layers[i + 1].weight[k][j] * self.layers[i + 1].delta[k]
                 self.layers[i].delta[j] = self.layers[i].value[j] * (1 - self.layers[i].value[j]) * totalSigma
 
 
             # Update the value of deltaweight node
-            for j in range(len(self.layers[i].weight)):
+            for j in range(1, len(self.layers[i].weight)):
                 for k in range(len(self.layers[i].weight[j])):
                     self.layers[i].deltaWeight[j][k] += self.learningRate * self.layers[i].delta[j] * self.layers[i - 1].value[k]
 
