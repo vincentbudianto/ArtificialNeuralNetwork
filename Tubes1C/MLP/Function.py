@@ -1,5 +1,5 @@
 import math
-# import numpy as np
+import numpy as np
 
 # Activation function
 def sigmoid(x):
@@ -23,3 +23,8 @@ def crossentropyCount(expected, reality):
 # Count the error (primitive way)
 def errorCount(expected, reality):
 	return math.pow((reality - expected), 2)
+
+# Softmax
+def softmax(layerOutput):
+	exponented = np.exp(layerOutput)
+	return exponented / np.sum(exponented)

@@ -1,7 +1,7 @@
 # from Layer import Layer
 from Layer import Layer
 from typing import List
-from Function import sigmoid, mse, crossentropyCount, errorCount
+from Function import sigmoid, mse, crossentropyCount, errorCount, softmax
 
 import copy as cp
 
@@ -111,16 +111,9 @@ class MLP:
             prevLayerOutput = self.layers[layerIdx-1].getOutput()
             self.layers[layerIdx].insertInput(prevLayerOutput)
             self.layers[layerIdx].calculateOutput(prevLayerOutput)
-        
-        # Softmax
-        total = 0
-        for i in range(len(self.layers[-1].output)):
-            total += self.layers[-1].output[i]
-        
-        # Set the output value
-        for i in range(len(self.layers[-1].output)):
-            self.layers[-1].output[i] /= total
-        
+
+        # Make into softmax
+        self.layers[-1].output = softmax(self.layers[-1].output)
 
     '''
     Back propagation algorithm
@@ -206,7 +199,7 @@ class MLP:
                 self.backPropagation(outputCheck(data[i * loopJump].iloc[j][len(data[i * loopJump].iloc[j]) - 1]))
                 self.flush(oldLayer)
             self.flushDelta()
-    
+
 
     '''
     Learning function
@@ -228,7 +221,7 @@ class MLP:
             # Checks if smaller than the minimum error
             if self.error < minError:
                 break
-            
+
             # Checks if it starts to diverge
             if i > 0 and self.error > lastLayerError:
                 divergeCounter += 1
@@ -237,14 +230,14 @@ class MLP:
             # If the counter > 1
             if divergeCounter == 10:
                 break
-            
+
             # If doesn't diverge 3 times, and doesn't reach minimum error, resets error
             lastLayerError = self.error
             self.error = 0
 
 
-            
-            
+
+
 
 
 
