@@ -5,6 +5,7 @@ Program runs from here....
 from MLP import MLP
 from Layer import Layer, ActivationFunction
 import pandas as pd
+import numpy as np
 
 
 '''
@@ -41,7 +42,7 @@ Main function
 '''
 def main():
     # Read data from csv
-    data = pd.read_csv("../iris.csv")
+    data = pd.read_csv("iris.csv")
     dataHead = list(data.columns)
 
     # Shuffle data
@@ -66,13 +67,13 @@ def main():
         else:
             return [1, 1, 1]
 
-    model = generateModel(0.1)
+    model = generateModel(0.05)
     model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=1000, minError=10)
 
     # Test result
     for i in range(len(model.layers)):
-        print(i)
-        print(model.layers[i].weight)
+        print("Layer: {}".format(i))
+        print(np.matrix(model.layers[i].weight))
 
 main()
 

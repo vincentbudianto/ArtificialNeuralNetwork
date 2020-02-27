@@ -1,6 +1,7 @@
 import enum
 from typing import List
 import math
+import random
 
 '''
 Layer class
@@ -27,7 +28,7 @@ class Layer:
         self.layerNo = layerNo
         self.isStart = (layerNo == 0)
         self.activationType = activationType
-        self.weight = [[0 for i in range(previousLayerNodeCount + 1)] for j in range(node_count)] if self.isStart == False else [[1] for j in range(node_count)]
+        self.weight = [[random.uniform(-1, 1) for i in range(previousLayerNodeCount + 1)] for j in range(node_count)] if self.isStart == False else [[1] for j in range(node_count)]
         self.input = []
         self.output = []
         self.delta = [0 for i in range(node_count)]
@@ -36,24 +37,30 @@ class Layer:
     def insertInput(self, prevLayerOutput : list):
         if len(prevLayerOutput) != self.previousLayerNodeCount:
             raise Exception('Input length and previous layer node count is not the same')
+        self.input = []
         BIAS = [1]
-        self.input += BIAS
+        if (not self.isStart):
+            self.input += BIAS
         self.input += prevLayerOutput #add bias
 
-    def calculateOutput(self, prevLayerOutput: List[int]):
+    def calculateOutput(self):
         activationFunction = self.getActivationFunction()
+        self.output = []
 
-        for nodeIdx, eachNodeWeights  in enumerate(self.weight): #for each node in this layer
-            nodeNet = 0
-            for weightIdx, eachWeight  in enumerate(eachNodeWeights):
-                nodeNet += eachWeight * self.input[weightIdx]
-            nodeOutput = activationFunction(nodeNet)
-            self.output.append(nodeOutput)
+        if self.isStart:
+            self.output = self.input
+        else:
+            for nodeIdx, eachNodeWeights  in enumerate(self.weight): #for each node in this layer
+                nodeNet = 0
+                for weightIdx, eachWeight  in enumerate(eachNodeWeights):
+                    nodeNet += eachWeight * self.input[weightIdx]
+                nodeOutput = activationFunction(nodeNet)
+                self.output.append(nodeOutput)
 
 
     def getOutputFromInput(self, prevLayerOutput: List[int]) -> List[int]:
         self.insertInput(prevLayerOutput)
-        self.calculateOutput(prevLayerOutput)
+        self.calculateOutput()
         return self.getOutput()
 
     def getOutput(self) -> List[int]:

@@ -2,7 +2,7 @@
 from Layer import Layer
 from typing import List
 from Function import sigmoid, mse, crossentropyCount, errorCount, softmax
-
+import numpy as np
 import copy as cp
 
 '''
@@ -42,39 +42,7 @@ class MLP:
         # self.layers = self.generateWeightsAndBias(layers)
         self.learningRate = learningRate
         self.error = 0
-
-    '''
-    Register weight baru terhadap layer-layer yang ada
-    - Semua weight dari layer dengan nilai lebih dari 1 diberi nilai 0
-    - Setiap layer diberi sebuah node dengan value 1 (bias)
-    '''
-    def generateWeightsAndBias(self, layers):
-        ## Generate bias, value, and delta
-        for layerIdx in range(len(layers) - 1):
-            layers[layerIdx].node_count += 1 #for bias layer
-            layers[layerIdx].value = [0] * layers[layerIdx].node_count
-            layers[layerIdx].value[0] = sigmoid(1)
-            layers[layerIdx].delta = [0] * layers[layerIdx].node_count
-
-        # Last value
-        layers[-1].value = [0] * layers[len(layers) - 1].node_count
-        layers[-1].delta = [0] * layers[len(layers) - 1].node_count
-
-        ## Generate weight
-        for i in range(1, len(layers)):
-            weight = []
-            deltaWeight = []
-
-            weight_iteration = layers[i].node_count - 1
-            if (i == len(layers) - 1):
-                weight_iteration += 1
-            for j in range(weight_iteration):
-                weight.append([0] * layers[i - 1].node_count)
-                deltaWeight.append([0] * layers[i - 1].node_count)
-            layers[i].weight = weight
-            layers[i].deltaWeight = deltaWeight
-
-        return layers
+        self.countError = 0
 
     '''
     Flush after every iteration of data
@@ -97,6 +65,7 @@ class MLP:
                 for k in range(len(self.layers[i].weight[j])):
                     self.layers[i].weight[j][k] += self.layers[i].deltaWeight[j][k]
                     self.layers[i].deltaWeight[j][k] = 0
+        # self.error = 0
 
     '''
     Feed forward algorithm
@@ -110,10 +79,10 @@ class MLP:
         for layerIdx in range(1, len(self.layers)):
             prevLayerOutput = self.layers[layerIdx-1].getOutput()
             self.layers[layerIdx].insertInput(prevLayerOutput)
-            self.layers[layerIdx].calculateOutput(prevLayerOutput)
+            self.layers[layerIdx].calculateOutput()
 
         # Make into softmax
-        self.layers[-1].output = softmax(self.layers[-1].output)
+        # self.layers[-1].output = softmax(self.layers[-1].output)
 
     '''
     Back propagation algorithm
@@ -126,26 +95,32 @@ class MLP:
         # Output layer
         lastLayer = self.layers[-1]
 
-        # Cross-entropy
-        # crossentropy = -(1/n) * Sigma(yi x log(Oouti) + (1 - yi) x log(1 - Oouti))
         tempError = 0
         for i in range(len(lastLayer.output)):
             tempError += errorCount(lastLayer.output[i], targetValue[i])
         tempError = tempError / len(lastLayer.output)
         self.error += tempError
 
+        maxProbIdx = np.argmax(lastLayer.output)
+        if targetValue[maxProbIdx] != 1:
+            self.countError += 1
+
         # Update the value of the delta
         # For every value in lastLayer, get the delta by comparing it with the target value
         # delta = output (1 - output) (target - output)
         for i in range(len(lastLayer.output)):
-            lastLayer.delta[i] = lastLayer.output[i] * (1 - lastLayer.output[i]) * (targetValue[i - 1] - lastLayer.output[i])
+            lastLayer.delta[i] = lastLayer.output[i] * (1 - lastLayer.output[i]) * (targetValue[i] - lastLayer.output[i])
 
         # Update the output of deltaweight
         # i = list of output nodes (weight lists)
         # j = list of input nodes (weight for a node)
-        for i in range(len(lastLayer.delta)):
-            for j in range(len(lastLayer.input)):
-                lastLayer.deltaWeight[i][j] += self.learningRate * lastLayer.delta[i] * lastLayer.input[j]
+        # for i in range(len(lastLayer.delta)):
+            # for j in range(len(lastLayer.input)):
+            #     lastLayer.deltaWeight[i][j] += self.learningRate * lastLayer.delta[i] * lastLayer.input[j]
+        for nodeIdx in range(len(lastLayer.weight)):
+            for prevNodeIdx in range(len(lastLayer.weight[nodeIdx])):
+                lastLayer.deltaWeight[nodeIdx][prevNodeIdx] += self.learningRate * lastLayer.delta[nodeIdx] * lastLayer.input[prevNodeIdx]
+
 
         # Hidden layers
         # i = loop from second last node to second first node (all hidden layers)
@@ -159,17 +134,17 @@ class MLP:
                 # k = loop for every delta in the next node (get the sigma of node)
                 # We need to plus one j because
                 # delta = output (1 - output) (sigma(delta * weight))
-                for k in range(len(self.layers[i + 1].delta)):
-                    totalSigma += self.layers[i + 1].weight[k][j + 1] * self.layers[i + 1].delta[k]
+                for frontLayerNodeIdx in range(self.layers[i + 1].node_count):
+                    totalSigma += self.layers[i + 1].weight[frontLayerNodeIdx][j + 1] * self.layers[i + 1].delta[frontLayerNodeIdx]
                 self.layers[i].delta[j] = self.layers[i].output[j] * (1 - self.layers[i].output[j]) * totalSigma
 
 
             # Update the output of deltaweight nodes
             # j = number of weight lists in a layer
-            for j in range(len(self.layers[i].delta)):
+            for nodeIdx in range(len(self.layers[i].delta)):
                 # k = for every node that the weight list points to
                 for k in range(len(self.layers[i].input)):
-                    self.layers[i].deltaWeight[j][k] += self.learningRate * self.layers[i].delta[j] * self.layers[i].input[k]
+                    self.layers[i].deltaWeight[nodeIdx][k] += self.learningRate * self.layers[i].delta[nodeIdx] * self.layers[i].input[k]
 
 
     '''
@@ -188,16 +163,16 @@ class MLP:
     def oneEpoch(self, data, loopJump, outputCheck):
         # Splits the data into mini-batches
         for i in range(0, len(data)):
-            # Execute the learning for every data batch
+            # Execute the learning for every data
             for j in range(len(data[i * loopJump])):
-                oldLayer = cp.deepcopy(self.layers)
+                # oldLayer = cp.deepcopy(self.layers)
                 # Loop for every data...
                 tempData = []
                 for k in range(len(data[i * loopJump].iloc[j]) - 1):
                     tempData.append(data[i * loopJump].iloc[j][k])
                 self.feedForward(tempData)
                 self.backPropagation(outputCheck(data[i * loopJump].iloc[j][len(data[i * loopJump].iloc[j]) - 1]))
-                self.flush(oldLayer)
+            # print("Error per minibatch =", self.error)
             self.flushDelta()
 
 
@@ -216,7 +191,7 @@ class MLP:
         for i in range(maxIteration):
             # Executes one epoch
             self.oneEpoch(data, loopJump, outputCheck)
-            print("Error =", self.error)
+            print('Iteration: {}, Wrong Prediction: {}, Error: {}'.format(i+1, self.countError, self.error))
 
             # Checks if smaller than the minimum error
             if self.error < minError:
@@ -234,7 +209,7 @@ class MLP:
             # If doesn't diverge 3 times, and doesn't reach minimum error, resets error
             lastLayerError = self.error
             self.error = 0
-
+            self.countError = 0
 
 
 
