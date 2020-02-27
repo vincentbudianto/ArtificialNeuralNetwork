@@ -1,7 +1,7 @@
 # from Layer import Layer
 from Layer import Layer
 from typing import List
-from Function import sigmoid, mse
+from Function import sigmoid, mse, crossentropyCount
 
 import copy as cp
 
@@ -41,7 +41,7 @@ class MLP:
         self.layers : List[Layer] = layers
         # self.layers = self.generateWeightsAndBias(layers)
         self.learningRate = learningRate
-        self.error = None
+        self.error = 0
 
     '''
     Register weight baru terhadap layer-layer yang ada
@@ -78,23 +78,27 @@ class MLP:
 
     '''
     Flush after every iteration of data
-    Return the value of every node in a layer to the value before the last count
+    Empty the input and output
     '''
     def flush(self, oldLayer):
-        for i in range(1, len(self.layers)):
-            for j in range(len(self.layers[i].weight)):
-                self.layers[i].weight = oldLayer[i].weight
+        for i in range(len(self.layers)):
+            self.layers[i].input = []
+            self.layers[i].output = []
+            self.layers[i].weight = oldLayer[i].weight
 
     '''
     Flush after every batch
     Add the value of to the delta to the layers
     '''
     def flushDelta(self):
+        # Add delta weight ot weight as well as emptying the delta weight
         for i in range(1, len(self.layers)):
             for j in range(len(self.layers[i].weight)):
                 for k in range(len(self.layers[i].weight[j])):
                     self.layers[i].weight[j][k] += self.layers[i].deltaWeight[j][k]
                     self.layers[i].deltaWeight[j][k] = 0
+        # Reset error
+        self.error = 0
 
     '''
     Feed forward algorithm
@@ -119,41 +123,52 @@ class MLP:
     '''
     def backPropagation(self, targetValue):
         # Output layer
-        lastLayer = self.layers[:-1]
+        lastLayer = self.layers[-1]
+
+        # Cross-entropy
+        # crossentropy = -(1/n) * Sigma(yi x log(Oouti) + (1 - yi) x log(1 - Oouti))
+        crossentropy = 0
+        for i in range(1, len(lastLayer.output)):
+            crossentropy += crossentropyCount(lastLayer.output[i], targetValue[i - 1])
+        crossentropy = crossentropy / (len(lastLayer.output) - 1) * -1
+        self.error += crossentropy
 
         # Update the value of the delta
         # For every value in lastLayer, get the delta by comparing it with the target value
-        for i in range(1, len(lastLayer.output)):
+        # delta = output (1 - output) (target - output)
+        for i in range(len(lastLayer.output)):
             lastLayer.delta[i] = lastLayer.output[i] * (1 - lastLayer.output[i]) * (targetValue[i - 1] - lastLayer.output[i])
 
         # Update the output of deltaweight
-        # i = list of weights of a certain node in layer
-        # j = weight for layer in node
-        for i in range(1, len(lastLayer.weight)):
-            for j in range(len(lastLayer.weight[i])):
-                lastLayer.deltaWeight[i][j] += self.learningRate * lastLayer.delta[i] * self.layers[len(self.layers) - 2].output[j]
+        # i = list of output nodes (weight lists)
+        # j = list of input nodes (weight for a node)
+        for i in range(len(lastLayer.delta)):
+            for j in range(len(lastLayer.input)):
+                lastLayer.deltaWeight[i][j] += self.learningRate * lastLayer.delta[i] * lastLayer.input[j]
 
         # Hidden layers
         # i = loop from second last node to second first node (all hidden layers)
         for i in range(len(self.layers) - 2, 0, -1):
             # Update the output of the delta
             # j = loop for every output in layers -> get the delta
-            for j in range(1, len(self.layers[i].output)):
+            for j in range(len(self.layers[i].output)):
                 totalSigma = 0
 
                 # Loop for every target node
-                # k = loop for every output in the next node (get the sigma of node)
-                for k in range(1, len(self.layers[i + 1].output)):
-                    totalSigma += self.layers[i + 1].weight[k][j] * self.layers[i + 1].delta[k]
+                # k = loop for every delta in the next node (get the sigma of node)
+                # We need to plus one j because
+                # delta = output (1 - output) (sigma(delta * weight))
+                for k in range(len(self.layers[i + 1].delta)):
+                    totalSigma += self.layers[i + 1].weight[k][j + 1] * self.layers[i + 1].delta[k]
                 self.layers[i].delta[j] = self.layers[i].output[j] * (1 - self.layers[i].output[j]) * totalSigma
 
 
             # Update the output of deltaweight nodes
             # j = number of weight lists in a layer
-            for j in range(1, len(self.layers[i].weight)):
+            for j in range(1, len(self.layers[i].delta)):
                 # k = for every node that the weight list points to
-                for k in range(len(self.layers[i].weight[j])):
-                    self.layers[i].deltaWeight[j][k] += self.learningRate * self.layers[i].delta[j] * self.layers[i - 1].output[k]
+                for k in range(len(self.layers[i].input)):
+                    self.layers[i].deltaWeight[j][k] += self.learningRate * self.layers[i].delta[j] * self.layers[i].input[k]
 
 
     '''

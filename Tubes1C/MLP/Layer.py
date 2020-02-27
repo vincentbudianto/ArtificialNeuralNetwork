@@ -30,15 +30,14 @@ class Layer:
         self.weight = [[0 for i in range(previousLayerNodeCount + 1)] for j in range(node_count)] if self.isStart == False else [[1] for j in range(node_count)]
         self.input = []
         self.output = []
-        self.delta = None
-        self.deltaWeight = None
+        self.delta = [0 for i in range(node_count)]
+        self.deltaWeight = [[0 for i in range(previousLayerNodeCount + 1)] for j in range(node_count)] if self.isStart == False else [[1] for j in range(node_count)]
 
     def insertInput(self, prevLayerOutput : list):
         if len(prevLayerOutput) != self.previousLayerNodeCount:
             raise Exception('Input length and previous layer node count is not the same')
         BIAS = [1]
-        if not self.isStart:
-            self.input += BIAS
+        self.input += BIAS
         self.input += prevLayerOutput #add bias
 
     def calculateOutput(self, prevLayerOutput: List[int]):
