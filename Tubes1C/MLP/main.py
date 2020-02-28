@@ -5,6 +5,7 @@ Program runs from here....
 from MLP import MLP
 from Layer import Layer, ActivationFunction
 import pandas as pd
+import numpy as np
 
 
 '''
@@ -29,7 +30,6 @@ def generateModel(learningRate):
     layer0 = Layer(4, 0, 4, ActivationFunction.linear)
     layer1 = Layer(3, 1, 4, ActivationFunction.sigmoid)
     layer2 = Layer(3, 2, 3, ActivationFunction.sigmoid)
-    print(layer0)
     layers = []
     layers.append(layer0)
     layers.append(layer1)
@@ -43,6 +43,7 @@ Main function
 def main():
     # Read data from csv
     data = pd.read_csv("iris.csv")
+    predictData = data
     dataHead = list(data.columns)
 
     # Shuffle data
@@ -58,22 +59,23 @@ def main():
     Create a function that returns the tuple of output node
     '''
     def nodeOutputCheck(str):
-        if (str == "Veriscolor"):
-            return [1, 0]
+        if (str == "Versicolor"):
+            return [0, 0, 1]
         elif (str == "Virginica"):
-            return [0, 1]
+            return [0, 1, 0]
         elif (str == "Setosa"):
-            return [0, 0]
+            return [1, 0, 0]
         else:
-            return [1, 1]
+            return [1, 1, 1]
 
-    model = generateModel(0.1)
-    model.oneEpoch(dataDict, dataSplitCount, nodeOutputCheck)
+    model = generateModel(0.05)
+    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=1000, minError=1)
+    model.predict(predictData, nodeOutputCheck)
 
     # Test result
     for i in range(len(model.layers)):
-        print(i)
-        print(model.layers[i].weight)
+        print("Layer: {}".format(i))
+        print(np.matrix(model.layers[i].weight))
 
 main()
 
