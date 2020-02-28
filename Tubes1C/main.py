@@ -42,7 +42,7 @@ Main function
 '''
 def main():
     # Read data from csv
-    data = pd.read_csv("iris.csv")
+    data = pd.read_csv("../iris.csv")
     predictData = data
     dataHead = list(data.columns)
 
@@ -69,7 +69,7 @@ def main():
             return [1, 1, 1]
 
     model = generateModel(0.05)
-    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=1000, minError=1)
+    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=1000, minError=1, divergingMaxCount=10)
     model.predict(predictData, nodeOutputCheck)
 
     # Test result

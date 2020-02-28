@@ -186,7 +186,7 @@ class MLP:
     - Reaches minimum error
     - Starts to diverge
     '''
-    def learn(self, data, loopJump, outputCheck, maxIteration, minError):
+    def learn(self, data, loopJump, outputCheck, maxIteration, minError, divergingMaxCount):
         divergeCounter = 0
         lastLayerError = 0
 
@@ -206,7 +206,7 @@ class MLP:
             else:
                 divergeCounter = 0
             # If the counter > 1
-            if divergeCounter == 10:
+            if divergeCounter >= divergingMaxCount:
                 break
 
             # If doesn't diverge 10 times, and doesn't reach minimum error, resets error
