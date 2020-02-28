@@ -43,6 +43,7 @@ class MLP:
         self.learningRate = learningRate
         self.error = 0
         self.countError = 0
+        self.caseNumber = 0
 
     '''
     Flush after every iteration of data
@@ -172,6 +173,7 @@ class MLP:
                     tempData.append(data[i * loopJump].iloc[j][k])
                 self.feedForward(tempData)
                 self.backPropagation(outputCheck(data[i * loopJump].iloc[j][len(data[i * loopJump].iloc[j]) - 1]))
+                self.caseNumber += 1
             # print("Error per minibatch =", self.error)
             self.flushDelta()
 
@@ -191,7 +193,8 @@ class MLP:
         for i in range(maxIteration):
             # Executes one epoch
             self.oneEpoch(data, loopJump, outputCheck)
-            print('Iteration: {}, Wrong Prediction: {}, Error: {}'.format(i+1, self.countError, self.error))
+            accuracy = (self.caseNumber-self.countError)/self.caseNumber*100;
+            print('Iteration: {}, Wrong Prediction: {}, Total Case: {}, Error: {}, Accuracy: {}%'.format(i+1, self.countError, self.caseNumber, round(self.error, 5), round(accuracy, 2)))
 
             # Checks if smaller than the minimum error
             if self.error < minError:
@@ -206,11 +209,24 @@ class MLP:
             if divergeCounter == 10:
                 break
 
-            # If doesn't diverge 3 times, and doesn't reach minimum error, resets error
+            # If doesn't diverge 10 times, and doesn't reach minimum error, resets error
             lastLayerError = self.error
             self.error = 0
             self.countError = 0
+            self.caseNumber = 0
 
+    def predict(self, data, nodeOutputCheck):
+        for dataIdx in range(len(data)):
+            numericList = []
+            result = nodeOutputCheck(data.iloc[dataIdx][-1])
+            for attrIdx in range(len(data.iloc[dataIdx])-1):
+                numericList.append(data.iloc[dataIdx][attrIdx])
+            self.feedForward(numericList)
+            predict = self.layers[-1].getOutput()
+            maxIdx = predict.index(max(predict))
+            processedPredict = [0 if i != maxIdx else 1 for i in range(len(predict))]
+            print("Test Prediction:")
+            print(result, processedPredict, result == processedPredict)
 
 
 

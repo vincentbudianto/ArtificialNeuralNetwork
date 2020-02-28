@@ -43,6 +43,7 @@ Main function
 def main():
     # Read data from csv
     data = pd.read_csv("iris.csv")
+    predictData = data
     dataHead = list(data.columns)
 
     # Shuffle data
@@ -58,7 +59,7 @@ def main():
     Create a function that returns the tuple of output node
     '''
     def nodeOutputCheck(str):
-        if (str == "Veriscolor"):
+        if (str == "Versicolor"):
             return [0, 0, 1]
         elif (str == "Virginica"):
             return [0, 1, 0]
@@ -68,7 +69,8 @@ def main():
             return [1, 1, 1]
 
     model = generateModel(0.05)
-    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=1000, minError=10)
+    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=1000, minError=1)
+    model.predict(predictData, nodeOutputCheck)
 
     # Test result
     for i in range(len(model.layers)):
