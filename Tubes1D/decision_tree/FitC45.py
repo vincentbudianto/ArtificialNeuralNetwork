@@ -362,12 +362,7 @@ def prune(dataHead, data, dataRaw):
         res = testResult(functionRules, testingData[i], dataHead)
         if (res != testingData[i][-1]):
             errorCount += 1
-
-    # print(testingData)
-
-    # print()
-    # print(errorCount)
-
+    
     # Testing pruning....
     # For each rule
     for ruleIdx, rule in enumerate(ruleList):
@@ -396,8 +391,8 @@ def prune(dataHead, data, dataRaw):
         ruleList[ruleIdx] = tempRule
         functionRules = tempFunctionRules
 
-    # print(ruleList)
-    # print(errorCount)
+    print(ruleList)
+    print(errorCount)
 
 # Procedure that feels missing values for each attributes in dataX
 def feelEmptyData(dataX):

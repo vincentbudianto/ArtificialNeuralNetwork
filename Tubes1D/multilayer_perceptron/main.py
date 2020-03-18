@@ -36,16 +36,10 @@ def generateModel(learningRate):
     layers.append(layer2)
     return MLP(layers, learningRate)
 
-
 '''
-Main function
+Learning function
 '''
-def main():
-    # Read data from csv
-    data = pd.read_csv("../dataset/iris.csv")
-    predictData = data
-    dataHead = list(data.columns)
-
+def learn(data, dataHead, predictData):
     # Shuffle data
     data = data.sample(frac=1).reset_index(drop=True)
 
@@ -71,6 +65,19 @@ def main():
     model = generateModel(0.05)
     model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=1000, minError=1, divergingMaxCount=10)
     model.predict(predictData, nodeOutputCheck)
+
+    return model
+
+'''
+Main function
+'''
+def main():
+    # Read data from csv
+    data = pd.read_csv("../dataset/iris.csv")
+    predictData = data
+    dataHead = list(data.columns)
+
+    model = learn(data, dataHead, predictData)
 
     # Test result
     for i in range(len(model.layers)):
