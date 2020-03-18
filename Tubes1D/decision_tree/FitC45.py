@@ -5,6 +5,8 @@ import copy as cp
 import random
 from DecisionTree import DecisionTree
 from collections import defaultdict
+from xml.dom import minidom
+from xml.etree import ElementTree as ET
 
 # Get data from csv
 def getCSVData(fileName):
@@ -107,7 +109,7 @@ def translateX(data, attributeDictionary, attributeIsDiscrete):
 
 # Create a basic fitying algorithn
 # After translating X and Y
-def fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary):
+def fit(parent, dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary):
     # Checking current entropy
     currentEntropy = f.entropyFunction(dataY)
     # print()
@@ -116,12 +118,12 @@ def fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classD
     # Getting tree through recursive function
     usableAttribute = dataHead[:-1]
     # print("Attributes:", usableAttribute)
-    result = dataAssessment(dataX, dataY, currentEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute)
+    result = dataAssessment(parent, dataX, dataY, currentEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute)
     print('Tree Result:')
     return result
 
 # Data assessment (returns the result decision tree)
-def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute, oldAttribute = None):
+def dataAssessment(parent, dataX, dataY, oldEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute, oldAttribute = None):
     # Empty result variable
     result = DecisionTree()
 
@@ -143,6 +145,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
     # If all examples are negative, Return the single-node tree Root, with label = -
     if (len(tempY) == 1):
         result.setRootValue(classDictionary[tempY[0]])
+        parent.text = classDictionary[tempY[0]]
         return result
 
     # If number of predicting attributes is empty, then Return the single node tree Root,
@@ -151,6 +154,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
         # Count most common value
         maxIdx = tempYCounter.index(max(tempYCounter))
         result.setRootValue(classDictionary[dataY[maxIdx]])
+        parent.text = classDictionary[dataY[maxIdx]]
         return result
 
     # Otherwise...
@@ -271,6 +275,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
     if (bestInformationGainRatio == 0):
         # Count most common value
         result.setRootValue(classDictionary[0])
+        parent.text = classDictionary[0]
 
         return result
     else:
@@ -288,6 +293,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
                 # Count most common value
                 maxIdx = tempYCounter.index(max(tempYCounter))
                 result.setRootValue(classDictionary[dataY[maxIdx]])
+                parent.text = classDictionary[dataY[maxIdx]]
                 return result
             # Set next old attribute
             if (attributeIsDiscrete[bestIdx]):
@@ -295,30 +301,27 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
             else:
                 if (i == 0):
                     impurity = [[x,bestTargetContainer[0].count(x)] for x in set(bestTargetContainer[0])]
+                    imp = str(impurity[0][1])
 
-                    if (len(impurity) > 1):
-                        nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
+                    for j in range (1, len(impurity)):
+                        imp += "/" + str(impurity[j][1])
 
-                        for j in range (1, len(impurity)):
-                            nextAttribute += "/" + str(impurity[j][1])
-                    else:
-                        nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
-
+                    nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + imp
+                    son = ET.SubElement(parent, bestAttribute, {'value':str(attributeDictionary[bestIdx][bestSplitted]), "flag":"l", "impurity":str(imp)})
                 else:
                     impurity = [[x,bestTargetContainer[1].count(x)] for x in set(bestTargetContainer[1])]
+                    imp = str(impurity[0][1])
 
-                    if (len(impurity) > 1):
-                        nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
+                    for j in range (1, len(impurity)):
+                        imp += "/" + str(impurity[j][1])
 
-                        for j in range (1, len(impurity)):
-                            nextAttribute += "/" + str(impurity[j][1])
-                    else:
-                        nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
+                    nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
+                    son = ET.SubElement(parent, bestAttribute, {'value':str(attributeDictionary[bestIdx][bestSplitted]), "flag":"r", "impurity":str(imp)})
 
             # Set new array of attributes
             tempUsableAttribute = usableAttribute[:]
 
-            result.setNodes(dataAssessment(bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, tempUsableAttribute, nextAttribute))
+            result.setNodes(dataAssessment(son, bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, tempUsableAttribute, nextAttribute))
 
         return result
 
@@ -327,7 +330,28 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
 #################
 # MAIN FUNCTION #
 #################
-def prune(dataHead, data, dataRaw):
+def prettify(e, level=0):
+    i = "\n" + level*"  "
+
+    print("e :", len(e))
+
+    if len(e):
+        if not e.text or not e.text.strip():
+            e.text = i + "  "
+
+        for e in e:
+            print(e.text)
+            prettify(e, level+1)
+
+        if not e.tail or not e.tail.strip():
+            e.tail = i
+
+    if level and (not e.tail or not e.tail.strip()):
+        e.tail = i
+
+    return e
+
+def prune(dataHead, data, dataRaw, xmlFile):
     # Generate tree from training data
     attributeDictionary, attributeIsDiscrete = createAttributeandIsDiscrete(data)
 
@@ -346,10 +370,17 @@ def prune(dataHead, data, dataRaw):
     dataX, dataY = splitXY(trainingData)
     feelEmptyData(dataX)
     dataY, classDictionary = translateY(dataY)
-    treeResult = fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
+
+    root = ET.Element('DecisionTree')
+    tree = ET.ElementTree(root)
+
+    treeResult = fit(root, dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
+    treeResult.printTree()
+
+    tree.write(xmlFile)
+    ET.dump(prettify(root))
 
     # Create set of rules
-    treeResult.printTree()
     ruleList = treeToRules(treeResult, dataHead)
     # print(ruleList)
     functionRules = []
@@ -480,8 +511,9 @@ def testResult(functionRules, testedData, dataHead):
 
 
 # Gata data of attributes, target, and their names
+xmlFile = "DecisionTree.xml"
 dataHead, data, dataRaw = getCSVData("../dataset/iris.csv")
-prune(dataHead, data, dataRaw)
+prune(dataHead, data, dataRaw, xmlFile)
 
 
 # print(dataX)
