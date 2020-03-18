@@ -1,0 +1,55 @@
+Iteration: 1, Wrong Prediction: 75, Error: 39.5038413606318
+Iteration: 2, Wrong Prediction: 54, Error: 33.38179013391363
+Iteration: 3, Wrong Prediction: 36, Error: 32.12403844238698
+Iteration: 4, Wrong Prediction: 23, Error: 30.95579146882131
+Iteration: 5, Wrong Prediction: 16, Error: 29.644010636060475
+Iteration: 6, Wrong Prediction: 0, Error: 28.22499355630971
+Iteration: 7, Wrong Prediction: 0, Error: 26.80160013007806
+Iteration: 8, Wrong Prediction: 0, Error: 25.45924724129589
+Iteration: 9, Wrong Prediction: 0, Error: 24.241115629117413
+Iteration: 10, Wrong Prediction: 0, Error: 23.15853036196027
+Iteration: 11, Wrong Prediction: 0, Error: 22.20620785733383
+Iteration: 12, Wrong Prediction: 0, Error: 21.372288947927228
+Iteration: 13, Wrong Prediction: 0, Error: 20.64293653854377
+Iteration: 14, Wrong Prediction: 0, Error: 20.00380098614385
+Iteration: 15, Wrong Prediction: 0, Error: 19.44056917536694
+Iteration: 16, Wrong Prediction: 0, Error: 18.939478918626687
+Iteration: 17, Wrong Prediction: 0, Error: 18.487823117815946
+Iteration: 18, Wrong Prediction: 0, Error: 18.07430606854113
+Iteration: 19, Wrong Prediction: 0, Error: 17.6892020873163
+Iteration: 20, Wrong Prediction: 0, Error: 17.32434878987783
+Iteration: 21, Wrong Prediction: 0, Error: 16.97303839372085
+Iteration: 22, Wrong Prediction: 0, Error: 16.62986769487281
+Iteration: 23, Wrong Prediction: 0, Error: 16.290588360816795
+Iteration: 24, Wrong Prediction: 0, Error: 15.951976584492444
+Iteration: 25, Wrong Prediction: 0, Error: 15.611723731497667
+Iteration: 26, Wrong Prediction: 0, Error: 15.268340389984003
+Iteration: 27, Wrong Prediction: 0, Error: 14.921063619614785
+Iteration: 28, Wrong Prediction: 0, Error: 14.569758458646747
+Iteration: 29, Wrong Prediction: 0, Error: 14.21480837369612
+Iteration: 30, Wrong Prediction: 0, Error: 13.856995053774417
+Iteration: 31, Wrong Prediction: 0, Error: 13.497375111858156
+Iteration: 32, Wrong Prediction: 0, Error: 13.137167356670316
+Iteration: 33, Wrong Prediction: 0, Error: 12.777665504723998
+Iteration: 34, Wrong Prediction: 0, Error: 12.42018525498042
+Iteration: 35, Wrong Prediction: 0, Error: 12.06604361900992
+Iteration: 36, Wrong Prediction: 0, Error: 11.716558032421466
+Iteration: 37, Wrong Prediction: 0, Error: 11.37304835853195
+Iteration: 38, Wrong Prediction: 0, Error: 11.036827614616763
+Iteration: 39, Wrong Prediction: 0, Error: 10.70917433537058
+Iteration: 40, Wrong Prediction: 0, Error: 10.391287219729401
+Iteration: 41, Wrong Prediction: 0, Error: 10.084228826441803
+Iteration: 42, Wrong Prediction: 0, Error: 9.788868841708883
+Layer: 0
+[[1]
+ [1]
+ [1]
+ [1]]
+Layer: 1
+[[-1.51674638 -1.59084811 -0.66617814  2.09136352  1.54684317]
+ [-0.59008373  0.75736327  1.21699074 -2.50629248 -0.9690457 ]
+ [-0.64485041  0.20542457  0.09892706 -0.99651503  0.0699971 ]]
+Layer: 2
+[[ 1.15534885 -2.44004523  2.10264538 -0.34550263]
+ [ 1.38691106  2.41942721 -3.20619635 -1.32879152]
+ [ 0.9577665  -2.24414522 -2.96176341  0.28197801]]

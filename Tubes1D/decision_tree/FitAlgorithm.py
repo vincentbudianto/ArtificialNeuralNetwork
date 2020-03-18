@@ -214,7 +214,8 @@ def feelEmptyData(dataX):
 
 # Get data and head
 # dataHead, data = getCSVData("iris.csv")
-dataHead, data = getCSVData("tennis.csv")
+dataHead, data = getCSVData("../dataset/iris.csv")
+
 # Get x and y
 newX, newY = splitXY(dataHead, data)
 feelEmptyData(newX)
