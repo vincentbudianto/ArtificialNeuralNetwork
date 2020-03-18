@@ -480,9 +480,8 @@ def testResult(functionRules, testedData, dataHead):
 
 
 # Gata data of attributes, target, and their names
-# dataHead, data, dataRaw = getCSVData("iris.csv")
-# prune(dataHead, data, dataRaw)
-# dataHead, data = getCSVData("tennis.csv")
+dataHead, data, dataRaw = getCSVData("../dataset/iris.csv")
+prune(dataHead, data, dataRaw)
 
 
 # print(dataX)

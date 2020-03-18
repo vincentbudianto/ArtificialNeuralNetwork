@@ -42,7 +42,7 @@ Main function
 '''
 def main():
     # Read data from csv
-    data = pd.read_csv("../iris.csv")
+    data = pd.read_csv("iris.csv")
     predictData = data
     dataHead = list(data.columns)
 
