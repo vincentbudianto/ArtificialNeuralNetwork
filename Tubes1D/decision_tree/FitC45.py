@@ -1,10 +1,12 @@
 import pandas as pd
 import numpy as np
-import Function as f
 import copy as cp
 import random
-from DecisionTree import DecisionTree
 from collections import defaultdict
+
+from . import Function as f
+from .DecisionTree import DecisionTree
+
 
 # Get data from csv
 def getCSVData(fileName):
@@ -333,8 +335,7 @@ def prune(dataHead, data, dataRaw):
 
     # Splits the element based on
     trainingData = dataRaw.sample(frac=0.8)
-
-
+    
     testingData = dataRaw.drop(trainingData.index)
     trainingData = np.array(trainingData)
     testingData = np.array(testingData)
@@ -351,6 +352,7 @@ def prune(dataHead, data, dataRaw):
     # Create set of rules
     treeResult.printTree()
     ruleList = treeToRules(treeResult, dataHead)
+    print(ruleList)
     # print(ruleList)
     functionRules = []
     for i in range(len(ruleList)):
@@ -381,7 +383,7 @@ def prune(dataHead, data, dataRaw):
             tempErrorCount = getErrorCount(testingData, experimentFunctionRules, dataHead)
 
             # Do pruning
-            if (tempErrorCount <= errorCount):
+            if (tempErrorCount <= errorCount) and (len(tempRule) > 2):
                 tempRule = experimentRule
                 tempFunctionRules = experimentFunctionRules
                 errorCount = tempErrorCount
@@ -393,6 +395,8 @@ def prune(dataHead, data, dataRaw):
 
     print(ruleList)
     print(errorCount)
+    
+    return ruleList
 
 # Procedure that feels missing values for each attributes in dataX
 def feelEmptyData(dataX):
@@ -428,6 +432,16 @@ def getErrorCount(testData, functionRules, dataHead):
             errorCount +=1
     return errorCount
 
+# Get error count from a set of rules
+def getErrorCountExternal(testData, functionRules, dataHead):
+    errorCount = 0
+    for i in range(len(testData)):
+        testDatum = testData.iloc[i]
+        res = testResult(functionRules, testDatum, dataHead)
+        if (res != testDatum[-1]):
+            errorCount +=1
+    return errorCount
+
 
 def treeToRules(treeResult, attributeList, lastRule = []):
     rule = lastRule
@@ -455,6 +469,10 @@ def createRule(rules):
         for i in range(len(rules) - 1):
             tempRule = rules[i].split()
             idx = dataHead.index(tempRule[0])
+            print("Rule")
+            print(tempRule)
+            print("Data")
+            print(testedData)
             toBeEvaluated = "\"" + str(testedData[idx]) + "\" " + tempRule[1] + " \"" + str(tempRule[2]) + "\""
             if (not eval(toBeEvaluated)):
                 isTrue = False
@@ -475,8 +493,8 @@ def testResult(functionRules, testedData, dataHead):
 
 
 # Gata data of attributes, target, and their names
-dataHead, data, dataRaw = getCSVData("../dataset/iris.csv")
-prune(dataHead, data, dataRaw)
+# dataHead, data, dataRaw = getCSVData("../dataset/iris.csv")
+# model = prune(dataHead, data, dataRaw)
 
 
 # print(dataX)

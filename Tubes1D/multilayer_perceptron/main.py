@@ -2,8 +2,8 @@
 Main class
 Program runs from here....
 '''
-from MLP import MLP
-from Layer import Layer, ActivationFunction
+from .MLP import MLP
+from .Layer import Layer, ActivationFunction
 import pandas as pd
 import numpy as np
 
@@ -63,7 +63,7 @@ def learn(data, dataHead, predictData):
             return [1, 1, 1]
 
     model = generateModel(0.05)
-    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=1000, minError=1, divergingMaxCount=10)
+    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=50, minError=1, divergingMaxCount=10)
     model.predict(predictData, nodeOutputCheck)
 
     return model
@@ -84,7 +84,7 @@ def main():
         print("Layer: {}".format(i))
         print(np.matrix(model.layers[i].weight))
 
-main()
+# main()
 
 
 
@@ -105,26 +105,12 @@ def outputCheck(a, b):
     else:
         return None
 
-# Just for test
-    # model = MLP(layers, 0.1)
-    # print(result.inputSize)
-
-    # for i in range(len(model.layers)):
-    #     print(model.layers[i].weight)
-    #     print(model.layers[i].deltaWeight)
-
-    # model.layers[1].deltaWeight[0][0] += 1
-    # model.layers[2].deltaWeight[0][0] += 1
-
-    # for i in range(len(model.layers)):
-    #     print(model.layers[i].weight)
-    #     print(model.layers[i].deltaWeight)
-
-    # model.flushDelta()
-
-    # for i in range(len(model.layers)):
-    #     print(model.layers[i].weight)
-    #     print(model.layers[i].deltaWeight)
-    # print(model.learningRate)
-
-
+def nodeOutputCheckExternal(str):
+    if (str == "Versicolor"):
+        return [0, 0, 1]
+    elif (str == "Virginica"):
+        return [0, 1, 0]
+    elif (str == "Setosa"):
+        return [1, 0, 0]
+    else:
+        return [1, 1, 1]

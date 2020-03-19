@@ -1,8 +1,8 @@
 # Main program to fit the data read
 import pandas as pd
 import numpy as np
-import Function as f
-from DecisionTree import DecisionTree
+from . import Function as f
+from .DecisionTree import DecisionTree
 from collections import defaultdict
 
 # Get data from csv
