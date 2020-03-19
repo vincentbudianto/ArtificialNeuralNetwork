@@ -1,14 +1,13 @@
 import pandas as pd
 import numpy as np
 import copy as cp
+import pickle
 import random
+import Function as f
 from collections import defaultdict
 from xml.dom import minidom
 from xml.etree import ElementTree as ET
-
-from . import Function as f
-from .DecisionTree import DecisionTree
-
+from DecisionTree import DecisionTree
 
 # Get data from csv
 def getCSVData(fileName):
@@ -335,14 +334,11 @@ def dataAssessment(parent, dataX, dataY, oldEntropy, dataHead, attributeDictiona
 def prettify(e, level=0):
     i = "\n" + level*"  "
 
-    print("e :", len(e))
-
     if len(e):
         if not e.text or not e.text.strip():
             e.text = i + "  "
 
         for e in e:
-            print(e.text)
             prettify(e, level+1)
 
         if not e.tail or not e.tail.strip():
@@ -353,13 +349,13 @@ def prettify(e, level=0):
 
     return e
 
-def prune(dataHead, data, dataRaw, xmlFile):
+def prune(dataHead, data, dataRaw, xmlFile, txtFile):
     # Generate tree from training data
     attributeDictionary, attributeIsDiscrete = createAttributeandIsDiscrete(data)
 
     # Splits the element based on
     trainingData = dataRaw.sample(frac=0.8)
-    
+
     testingData = dataRaw.drop(trainingData.index)
     trainingData = np.array(trainingData)
     testingData = np.array(testingData)
@@ -379,12 +375,13 @@ def prune(dataHead, data, dataRaw, xmlFile):
     treeResult.printTree()
 
     if xmlFile is not None:
+        print("\nxml Result :")
         tree.write(xmlFile)
         ET.dump(prettify(root))
 
     # Create set of rules
     ruleList = treeToRules(treeResult, dataHead)
-    print(ruleList)
+    # print("ruleList :")
     # print(ruleList)
     functionRules = []
     for i in range(len(ruleList)):
@@ -396,7 +393,7 @@ def prune(dataHead, data, dataRaw, xmlFile):
         res = testResult(functionRules, testingData[i], dataHead)
         if (res != testingData[i][-1]):
             errorCount += 1
-    
+
     # Testing pruning....
     # For each rule
     for ruleIdx, rule in enumerate(ruleList):
@@ -425,9 +422,14 @@ def prune(dataHead, data, dataRaw, xmlFile):
         ruleList[ruleIdx] = tempRule
         functionRules = tempFunctionRules
 
+    print("\nrule List :")
     print(ruleList)
-    print(errorCount)
-    
+    # print(errorCount)
+
+    if txtFile is not None:
+        with open(txtFile, "wb") as f:
+            pickle.dump(ruleList, f)
+
     return ruleList
 
 # Procedure that feels missing values for each attributes in dataX
@@ -501,10 +503,10 @@ def createRule(rules):
         for i in range(len(rules) - 1):
             tempRule = rules[i].split()
             idx = dataHead.index(tempRule[0])
-            print("Rule")
-            print(tempRule)
-            print("Data")
-            print(testedData)
+            # print("Rule")
+            # print(tempRule)
+            # print("Data")
+            # print(testedData)
             toBeEvaluated = "\"" + str(testedData[idx]) + "\" " + tempRule[1] + " \"" + str(tempRule[2]) + "\""
             if (not eval(toBeEvaluated)):
                 isTrue = False
@@ -526,9 +528,15 @@ def testResult(functionRules, testedData, dataHead):
 
 # Gata data of attributes, target, and their names
 xmlFile = "DecisionTree.xml"
-# dataHead, data, dataRaw = getCSVData("../dataset/iris.csv")
-# prune(dataHead, data, dataRaw, xmlFile)
+txtFile = "RuleList.txt"
+dataHead, data, dataRaw = getCSVData("../dataset/iris.csv")
+prune(dataHead, data, dataRaw, xmlFile, txtFile)
 
+with open(txtFile, "rb") as f:
+    rules = pickle.load(f)
+
+print("\nRules :")
+print(rules)
 
 # print(dataX)
 # print(dataY)
