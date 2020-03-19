@@ -38,7 +38,7 @@ class TenFoldCross:
     def runDTL(self, data):
         dataCopy = cp.copy(data)
         dataNPArray = np.array(dataCopy)
-        return prune(self.dataHead, dataNPArray, data)
+        return prune(self.dataHead, dataNPArray, data, None)
 
     def runANN(self, data):
         predictData = data
@@ -154,9 +154,9 @@ class TenFoldCross:
 # tenfold.runANN(tenfold.data)
 
 # Testing executiong
-# tenfold = TenFoldCross("iris.csv")
-# tenfold.tenCrossFoldDTL()
+tenfold = TenFoldCross("iris.csv")
+tenfold.tenCrossFoldDTL()
 
 # Testing executiong
-tenfold = TenFoldCross("iris.csv")
-tenfold.tenCrossFoldANN()
+# tenfold = TenFoldCross("iris.csv")
+# tenfold.tenCrossFoldANN()
