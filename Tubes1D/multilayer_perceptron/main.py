@@ -2,8 +2,8 @@
 Main class
 Program runs from here....
 '''
-from MLP import MLP
-from Layer import Layer, ActivationFunction
+from .MLP import MLP
+from .Layer import Layer, ActivationFunction
 import pandas as pd
 import numpy as np
 
@@ -36,16 +36,10 @@ def generateModel(learningRate):
     layers.append(layer2)
     return MLP(layers, learningRate)
 
-
 '''
-Main function
+Learning function
 '''
-def main():
-    # Read data from csv
-    data = pd.read_csv("iris.csv")
-    predictData = data
-    dataHead = list(data.columns)
-
+def learn(data, dataHead, predictData):
     # Shuffle data
     data = data.sample(frac=1).reset_index(drop=True)
 
@@ -69,15 +63,28 @@ def main():
             return [1, 1, 1]
 
     model = generateModel(0.05)
-    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=100, minError=1, divergingMaxCount=10)
+    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=50, minError=1, divergingMaxCount=10)
     model.predict(predictData, nodeOutputCheck)
+
+    return model
+
+'''
+Main function
+'''
+def main():
+    # Read data from csv
+    data = pd.read_csv("../dataset/iris.csv")
+    predictData = data
+    dataHead = list(data.columns)
+
+    model = learn(data, dataHead, predictData)
 
     # Test result
     for i in range(len(model.layers)):
         print("Layer: {}".format(i))
         print(np.matrix(model.layers[i].weight))
 
-main()
+# main()
 
 
 
@@ -107,27 +114,3 @@ def nodeOutputCheckExternal(str):
         return [1, 0, 0]
     else:
         return [1, 1, 1]
-
-# Just for test
-    # model = MLP(layers, 0.1)
-    # print(result.inputSize)
-
-    # for i in range(len(model.layers)):
-    #     print(model.layers[i].weight)
-    #     print(model.layers[i].deltaWeight)
-
-    # model.layers[1].deltaWeight[0][0] += 1
-    # model.layers[2].deltaWeight[0][0] += 1
-
-    # for i in range(len(model.layers)):
-    #     print(model.layers[i].weight)
-    #     print(model.layers[i].deltaWeight)
-
-    # model.flushDelta()
-
-    # for i in range(len(model.layers)):
-    #     print(model.layers[i].weight)
-    #     print(model.layers[i].deltaWeight)
-    # print(model.learningRate)
-
-
