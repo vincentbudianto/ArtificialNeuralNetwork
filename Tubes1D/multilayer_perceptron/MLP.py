@@ -194,7 +194,7 @@ class MLP:
             # Executes one epoch
             self.oneEpoch(data, loopJump, outputCheck)
             accuracy = (self.caseNumber-self.countError)/self.caseNumber*100;
-            print('Iteration: {}, Wrong Prediction: {}, Total Case: {}, Error: {}, Accuracy: {}%'.format(i+1, self.countError, self.caseNumber, round(self.error, 5), round(accuracy, 2)))
+            # print('Iteration: {}, Wrong Prediction: {}, Total Case: {}, Error: {}, Accuracy: {}%'.format(i+1, self.countError, self.caseNumber, round(self.error, 5), round(accuracy, 2)))
 
             # Checks if smaller than the minimum error
             if self.error < minError:

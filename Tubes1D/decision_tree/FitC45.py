@@ -3,11 +3,14 @@ import numpy as np
 import copy as cp
 import pickle
 import random
-# import Function as f
+
 from collections import defaultdict
 from xml.dom import minidom
 from xml.etree import ElementTree as ET
+
+# import Function as f
 # from DecisionTree import DecisionTree
+
 from . import Function as f
 from .DecisionTree import DecisionTree
 
@@ -122,7 +125,6 @@ def fit(parent, dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete
     usableAttribute = dataHead[:-1]
     # print("Attributes:", usableAttribute)
     result = dataAssessment(parent, dataX, dataY, currentEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute)
-    print('Tree Result:')
     return result
 
 # Data assessment (returns the result decision tree)
@@ -374,7 +376,6 @@ def prune(dataHead, data, dataRaw, xmlFile, txtFile):
     tree = ET.ElementTree(root)
 
     treeResult = fit(root, dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
-    treeResult.printTree()
 
     if xmlFile is not None:
         print("\nxml Result :")
@@ -424,8 +425,6 @@ def prune(dataHead, data, dataRaw, xmlFile, txtFile):
         ruleList[ruleIdx] = tempRule
         functionRules = tempFunctionRules
 
-    print("\nrule List :")
-    print(ruleList)
     # print(errorCount)
 
     if txtFile is not None:
@@ -526,7 +525,6 @@ def testResult(functionRules, testedData, dataHead):
         if (tempResult != -9999):
             return tempResult
     return -9999
-
 
 # Gata data of attributes, target, and their names
 def loadRules():

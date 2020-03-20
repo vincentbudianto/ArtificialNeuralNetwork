@@ -91,6 +91,7 @@ class TenFoldCross:
 
         # Loop for each data
         for i in range(10):
+            print("Ten Fold Cross Valudation DTL Iteration:", i)
             # Train the data
             timeStart = time.time()
             model = self.runDTL(trainingData[i])
@@ -140,6 +141,7 @@ class TenFoldCross:
 
         # Loop for each data
         for i in range(10):
+            print("Ten Fold Cross Valudation ANN Iteration:", i)
             # Train the data
             timeStart = time.time()
             model = self.runANN(trainingData[i])
