@@ -83,8 +83,8 @@ class TenFoldCross:
     Doing the ten cross fold validation
     '''
     def tenCrossFoldDTL(self):
-        trainingTimeList = []
-        accuracyList = []
+        trainingTimeListDTL = []
+        accuracyListDTL = []
 
         # Get training and testing data
         trainingData, testingData = self.gatheringData()
@@ -101,18 +101,20 @@ class TenFoldCross:
                 modelRules.append(createRule(model[i]))
             timeEnd = time.time()
 
-            trainingTimeList.append(timeEnd - timeStart)
+            trainingTimeListDTL.append(timeEnd - timeStart)
 
             # Check for data's accuracy
             errorCount = getErrorCountExternal(testingData[i], modelRules, self.dataHead)
             accuracy = (len(testingData[i]) - errorCount) / len(testingData[i])
-            accuracyList.append(accuracy)
+            accuracyListDTL.append(accuracy)
 
         print("Elapsed Time")
-        print(trainingTimeList)
+        print(trainingTimeListDTL)
 
         print("Accuracy")
-        print(accuracyList)
+        print(accuracyListDTL)
+
+        return trainingTimeListDTL, accuracyListDTL
 
 
     '''
@@ -141,9 +143,11 @@ class TenFoldCross:
 
         print("Elapsed Time")
         print(trainingTimeList)
+        return trainingTimeList
 
         print("Accuracy")
         print(accuracyList)
+        return accuracyList
 
 
 # Main function
