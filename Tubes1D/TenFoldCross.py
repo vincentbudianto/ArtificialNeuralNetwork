@@ -125,32 +125,12 @@ class TenFoldCross:
         # Get training and testing data
         trainingData, testingData = self.gatheringData()
 
-        model = None
-        try:
-            file = open('save_file_ann', 'rb')
-            decision = input("ANN model save_file found, do you want to load model (y/n)?")
-            if decision[0].lower() == 'y':
-                model = pickle.load(file)
-                print('ANN model is loaded from file successfully!')
-            else:
-                print('ANN model is not loaded from file!')
-            file.close()
-        except IOError:
-            print('ANN model save_file not found, initiating new model!')
-
-
         # Loop for each data
         for i in range(10):
             print("Ten Fold Cross Valudation ANN Iteration:", i)
             # Train the data
             timeStart = time.time()
             model = self.runANN(trainingData[i])
-
-            file = open('save_file_ann', 'wb')
-            pickle.dump(model, file)
-            file.close()
-
-            print('Saving newest ANN model!')
             timeEnd = time.time()
 
             trainingTimeList.append(timeEnd - timeStart)
