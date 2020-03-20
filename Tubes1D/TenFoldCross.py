@@ -4,6 +4,7 @@ import numpy as np
 import copy as cp
 import math
 import time
+import pickle
 
 # Internal library
 from decision_tree.FitC45 import prune, createRule, getErrorCountExternal
@@ -31,7 +32,7 @@ class TenFoldCross:
 
         dataCopy = cp.copy(self.data)
         self.dataNPArray = np.array(dataCopy)
-    
+
     '''
     One time run
     '''
@@ -43,7 +44,7 @@ class TenFoldCross:
     def runANN(self, data):
         predictData = data
         return learn(data, self.dataHead, predictData)
-    
+
 
     '''
     Get dataframe needed for doing Ten Fold Cross Validation
@@ -67,7 +68,7 @@ class TenFoldCross:
                     tempTestingData.append((tempArray[j][0], tempArray[j][1], tempArray[j][2], tempArray[j][3], tempArray[j][4]))
                 else:
                     tempTrainingData.append((tempArray[j][0], tempArray[j][1], tempArray[j][2], tempArray[j][3], tempArray[j][4]))
-            
+
             # Convert data to datagram
             trainingData = pd.DataFrame(tempTrainingData, columns=['sepal.length', 'sepal.width', 'petal.length', 'petal.width', 'variety'])
             testingData = pd.DataFrame(tempTestingData, columns=['sepal.length', 'sepal.width', 'petal.length', 'petal.width', 'variety'])
@@ -77,7 +78,7 @@ class TenFoldCross:
             testingResult.append(testingData)
 
         return (trainingResult, testingResult)
-    
+
     '''
     Doing the ten cross fold validation
     '''
@@ -104,14 +105,14 @@ class TenFoldCross:
             # Check for data's accuracy
             errorCount = getErrorCountExternal(testingData[i], modelRules, self.dataHead)
             accuracy = (len(testingData[i]) - errorCount) / len(testingData[i])
-            accuracyList.append(accuracy)  
+            accuracyList.append(accuracy)
 
         print("Elapsed Time")
         print(trainingTimeList)
 
         print("Accuracy")
         print(accuracyList)
-    
+
 
     '''
     Doing the ten cross fold validation
@@ -123,19 +124,39 @@ class TenFoldCross:
         # Get training and testing data
         trainingData, testingData = self.gatheringData()
 
+        model = None
+        try:
+            file = open('save_file_ann', 'rb')
+            decision = input("ANN model save_file found, do you want to load model (y/n)?")
+            if decision[0].lower() == 'y':
+                model = pickle.load(file)
+                print('ANN model is loaded from file successfully!')
+            else:
+                print('ANN model is not loaded from file!')
+            file.close()
+        except IOError:
+            print('ANN model save_file not found, initiating new model!')
+
+
         # Loop for each data
         for i in range(10):
             # Train the data
             timeStart = time.time()
             model = self.runANN(trainingData[i])
+
+            file = open('save_file_ann', 'wb')
+            pickle.dump(model, file)
+            file.close()
+
+            print('Saving newest ANN model!')
             timeEnd = time.time()
 
             trainingTimeList.append(timeEnd - timeStart)
-            
+
             # Check for data's accuracy
             accuracy = model.predict(testingData[i], nodeOutputCheckExternal)
             accuracyList.append(accuracy)
-        
+
         print("Elapsed Time")
         print(trainingTimeList)
 
@@ -158,5 +179,5 @@ class TenFoldCross:
 # tenfold.tenCrossFoldDTL()
 
 # Testing executiong
-# tenfold = TenFoldCross("iris.csv")
-# tenfold.tenCrossFoldANN()
+tenfold = TenFoldCross("iris.csv")
+tenfold.tenCrossFoldANN()
