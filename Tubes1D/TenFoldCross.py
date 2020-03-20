@@ -154,8 +154,8 @@ class TenFoldCross:
 # tenfold.runANN(tenfold.data)
 
 # Testing executiong
-tenfold = TenFoldCross("iris.csv")
-tenfold.tenCrossFoldDTL()
+# tenfold = TenFoldCross("iris.csv")
+# tenfold.tenCrossFoldDTL()
 
 # Testing executiong
 # tenfold = TenFoldCross("iris.csv")
