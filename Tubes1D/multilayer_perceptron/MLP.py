@@ -226,8 +226,8 @@ class MLP:
             predict = self.layers[-1].getOutput()
             maxIdx = predict.index(max(predict))
             processedPredict = [0 if i != maxIdx else 1 for i in range(len(predict))]
-            print("Test Prediction:")
-            print(result, processedPredict, result == processedPredict)
+            # print("Test Prediction:")
+            # print(result, processedPredict, result == processedPredict)
             if (result == processedPredict):
                 rightCount += 1
         

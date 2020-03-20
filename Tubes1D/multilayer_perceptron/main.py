@@ -40,7 +40,7 @@ def generateModel(learningRate):
 '''
 Learning function
 '''
-def learn(data, dataHead, predictData):
+def learn(data, dataHead, predictData, loadData = False, saveData = False):
     # Shuffle data
     data = data.sample(frac=1).reset_index(drop=True)
 
@@ -64,17 +64,18 @@ def learn(data, dataHead, predictData):
             return [1, 1, 1]
 
     model = None
-    try:
-        file = open('save_file_ann', 'rb')
-        decision = input("ANN model save_file found, do you want to load model (y/n)?")
-        if decision[0].lower() == 'y':
-            model = pickle.load(file)
-            print('ANN model is loaded from file successfully!')
-        else:
-            print('ANN model is not loaded from file!')
-        file.close()
-    except IOError:
-        print('ANN model save_file not found, initiating new model!')
+    if loadData:
+        try:
+            file = open('save_file_ann', 'rb')
+            decision = input("ANN model save_file found, do you want to load model (y/n)?")
+            if decision[0].lower() == 'y':
+                model = pickle.load(file)
+                print('ANN model is loaded from file successfully!')
+            else:
+                print('ANN model is not loaded from file!')
+            file.close()
+        except IOError:
+            print('ANN model save_file not found, initiating new model!')
 
     if model is None:
         model = generateModel(0.05)
@@ -82,11 +83,11 @@ def learn(data, dataHead, predictData):
 
     model.predict(predictData, nodeOutputCheck)
 
-    file = open('save_file_ann', 'wb')
-    pickle.dump(model, file)
-    file.close()
-
-    print('Saving newest ANN model!')
+    if saveData:
+        file = open('save_file_ann', 'wb')
+        pickle.dump(model, file)
+        file.close()
+        print('Saving newest ANN model!')
 
     return model
 
