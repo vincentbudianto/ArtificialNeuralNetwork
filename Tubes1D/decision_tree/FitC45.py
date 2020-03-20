@@ -22,6 +22,13 @@ def getCSVData(fileName):
     dataProcessed = np.array(dataCopy)
     return (dataHead, dataProcessed, data)
 
+def getData(set_data):
+    data = set_data
+    dataCopy = cp.copy(data)
+    dataHead = list(dataCopy.columns)
+    dataProcessed = np.array(dataCopy)
+    return (dataHead, dataProcessed, data)
+
 # Splitters and translaters
 # Data splitter (splits X and Y (attributes and target attributes))
 def splitXY(data):
@@ -527,10 +534,10 @@ def testResult(functionRules, testedData, dataHead):
     return -9999
 
 # Gata data of attributes, target, and their names
-def loadRules():
+def loadRules(set_data):
     xmlFile = "DecisionTree.xml"
     txtFile = "RuleList.txt"
-    dataHead, data, dataRaw = getCSVData("../dataset/iris.csv")
+    dataHead, data, dataRaw = getData(set_data)
     prune(dataHead, data, dataRaw, xmlFile, txtFile)
 
     with open(txtFile, "rb") as f:
