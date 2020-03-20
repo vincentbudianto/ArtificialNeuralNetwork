@@ -3,11 +3,13 @@ import numpy as np
 import copy as cp
 import pickle
 import random
-import Function as f
+# import Function as f
 from collections import defaultdict
 from xml.dom import minidom
 from xml.etree import ElementTree as ET
-from DecisionTree import DecisionTree
+# from DecisionTree import DecisionTree
+from . import Function as f
+from .DecisionTree import DecisionTree
 
 # Get data from csv
 def getCSVData(fileName):
@@ -527,16 +529,17 @@ def testResult(functionRules, testedData, dataHead):
 
 
 # Gata data of attributes, target, and their names
-xmlFile = "DecisionTree.xml"
-txtFile = "RuleList.txt"
-dataHead, data, dataRaw = getCSVData("../dataset/iris.csv")
-prune(dataHead, data, dataRaw, xmlFile, txtFile)
+def loadRules():
+    xmlFile = "DecisionTree.xml"
+    txtFile = "RuleList.txt"
+    dataHead, data, dataRaw = getCSVData("../dataset/iris.csv")
+    prune(dataHead, data, dataRaw, xmlFile, txtFile)
 
-with open(txtFile, "rb") as f:
-    rules = pickle.load(f)
+    with open(txtFile, "rb") as f:
+        rules = pickle.load(f)
 
-print("\nRules :")
-print(rules)
+    print("\nRules :")
+    print(rules)
 
 # print(dataX)
 # print(dataY)

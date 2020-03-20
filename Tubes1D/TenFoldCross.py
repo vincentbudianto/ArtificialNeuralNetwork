@@ -38,7 +38,7 @@ class TenFoldCross:
     def runDTL(self, data):
         dataCopy = cp.copy(data)
         dataNPArray = np.array(dataCopy)
-        return prune(self.dataHead, dataNPArray, data, None)
+        return prune(self.dataHead, dataNPArray, data, None, None)
 
     def runANN(self, data):
         predictData = data
