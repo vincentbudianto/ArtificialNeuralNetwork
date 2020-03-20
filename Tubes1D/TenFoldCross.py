@@ -165,5 +165,11 @@ class TenFoldCross:
 # tenfold.tenCrossFoldDTL()
 
 # Testing executiong
-tenfold = TenFoldCross("iris.csv")
-tenfold.tenCrossFoldANN()
+# tenfold = TenFoldCross("iris.csv")
+# tenfold.tenCrossFoldANN()
+
+# tenfold = TenFoldCross("iris.csv")
+# print("Ten Cross Fold DTL")
+# tenfold.tenCrossFoldDTL()
+# print("Ten Cross Fold ANN")
+# tenfold.tenCrossFoldANN()
