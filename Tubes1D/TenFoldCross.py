@@ -143,11 +143,10 @@ class TenFoldCross:
 
         print("Elapsed Time")
         print(trainingTimeList)
-        return trainingTimeList
 
         print("Accuracy")
         print(accuracyList)
-        return accuracyList
+        return trainingTimeList, accuracyList
 
 
 # Main function
@@ -166,10 +165,4 @@ class TenFoldCross:
 
 # Testing executiong
 # tenfold = TenFoldCross("iris.csv")
-# tenfold.tenCrossFoldANN()
-
-# tenfold = TenFoldCross("iris.csv")
-# print("Ten Cross Fold DTL")
-# tenfold.tenCrossFoldDTL()
-# print("Ten Cross Fold ANN")
 # tenfold.tenCrossFoldANN()
