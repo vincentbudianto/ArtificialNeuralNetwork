@@ -69,7 +69,7 @@ def main():
             return [1, 1, 1]
 
     model = generateModel(0.05)
-    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=1000, minError=1, divergingMaxCount=10)
+    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=100, minError=1, divergingMaxCount=10)
     model.predict(predictData, nodeOutputCheck)
 
     # Test result
@@ -97,6 +97,16 @@ def outputCheck(a, b):
         return "Setosa"
     else:
         return None
+
+def nodeOutputCheckExternal(str):
+    if (str == "Versicolor"):
+        return [0, 0, 1]
+    elif (str == "Virginica"):
+        return [0, 1, 0]
+    elif (str == "Setosa"):
+        return [1, 0, 0]
+    else:
+        return [1, 1, 1]
 
 # Just for test
     # model = MLP(layers, 0.1)

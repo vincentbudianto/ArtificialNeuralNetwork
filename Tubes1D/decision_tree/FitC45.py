@@ -1,14 +1,29 @@
 import pandas as pd
 import numpy as np
-import Function as f
 import copy as cp
+import pickle
 import random
-from DecisionTree import DecisionTree
+
 from collections import defaultdict
+from xml.dom import minidom
+from xml.etree import ElementTree as ET
+
+# import Function as f
+# from DecisionTree import DecisionTree
+
+from . import Function as f
+from .DecisionTree import DecisionTree
 
 # Get data from csv
 def getCSVData(fileName):
     data = pd.read_csv(fileName)
+    dataCopy = cp.copy(data)
+    dataHead = list(dataCopy.columns)
+    dataProcessed = np.array(dataCopy)
+    return (dataHead, dataProcessed, data)
+
+def getData(set_data):
+    data = set_data
     dataCopy = cp.copy(data)
     dataHead = list(dataCopy.columns)
     dataProcessed = np.array(dataCopy)
@@ -107,7 +122,7 @@ def translateX(data, attributeDictionary, attributeIsDiscrete):
 
 # Create a basic fitying algorithn
 # After translating X and Y
-def fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary):
+def fit(parent, dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary):
     # Checking current entropy
     currentEntropy = f.entropyFunction(dataY)
     # print()
@@ -116,12 +131,11 @@ def fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classD
     # Getting tree through recursive function
     usableAttribute = dataHead[:-1]
     # print("Attributes:", usableAttribute)
-    result = dataAssessment(dataX, dataY, currentEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute)
-    print('Tree Result:')
+    result = dataAssessment(parent, dataX, dataY, currentEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute)
     return result
 
 # Data assessment (returns the result decision tree)
-def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute, oldAttribute = None):
+def dataAssessment(parent, dataX, dataY, oldEntropy, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, usableAttribute, oldAttribute = None):
     # Empty result variable
     result = DecisionTree()
 
@@ -143,6 +157,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
     # If all examples are negative, Return the single-node tree Root, with label = -
     if (len(tempY) == 1):
         result.setRootValue(classDictionary[tempY[0]])
+        parent.text = classDictionary[tempY[0]]
         return result
 
     # If number of predicting attributes is empty, then Return the single node tree Root,
@@ -151,6 +166,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
         # Count most common value
         maxIdx = tempYCounter.index(max(tempYCounter))
         result.setRootValue(classDictionary[dataY[maxIdx]])
+        parent.text = classDictionary[dataY[maxIdx]]
         return result
 
     # Otherwise...
@@ -271,6 +287,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
     if (bestInformationGainRatio == 0):
         # Count most common value
         result.setRootValue(classDictionary[0])
+        parent.text = classDictionary[0]
 
         return result
     else:
@@ -288,6 +305,7 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
                 # Count most common value
                 maxIdx = tempYCounter.index(max(tempYCounter))
                 result.setRootValue(classDictionary[dataY[maxIdx]])
+                parent.text = classDictionary[dataY[maxIdx]]
                 return result
             # Set next old attribute
             if (attributeIsDiscrete[bestIdx]):
@@ -295,30 +313,27 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
             else:
                 if (i == 0):
                     impurity = [[x,bestTargetContainer[0].count(x)] for x in set(bestTargetContainer[0])]
+                    imp = str(impurity[0][1])
 
-                    if (len(impurity) > 1):
-                        nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
+                    for j in range (1, len(impurity)):
+                        imp += "/" + str(impurity[j][1])
 
-                        for j in range (1, len(impurity)):
-                            nextAttribute += "/" + str(impurity[j][1])
-                    else:
-                        nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
-
+                    nextAttribute = bestAttribute + " <= " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + imp
+                    son = ET.SubElement(parent, bestAttribute, {'value':str(attributeDictionary[bestIdx][bestSplitted]), "flag":"l", "impurity":str(imp)})
                 else:
                     impurity = [[x,bestTargetContainer[1].count(x)] for x in set(bestTargetContainer[1])]
+                    imp = str(impurity[0][1])
 
-                    if (len(impurity) > 1):
-                        nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
+                    for j in range (1, len(impurity)):
+                        imp += "/" + str(impurity[j][1])
 
-                        for j in range (1, len(impurity)):
-                            nextAttribute += "/" + str(impurity[j][1])
-                    else:
-                        nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
+                    nextAttribute = bestAttribute + " > " + str(attributeDictionary[bestIdx][bestSplitted]) + " : " + str(impurity[0][1])
+                    son = ET.SubElement(parent, bestAttribute, {'value':str(attributeDictionary[bestIdx][bestSplitted]), "flag":"r", "impurity":str(imp)})
 
             # Set new array of attributes
             tempUsableAttribute = usableAttribute[:]
 
-            result.setNodes(dataAssessment(bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, tempUsableAttribute, nextAttribute))
+            result.setNodes(dataAssessment(son, bestClassContainer[i], bestTargetContainer[i], bestEntropy[i], dataHead, attributeDictionary, attributeIsDiscrete, classDictionary, tempUsableAttribute, nextAttribute))
 
         return result
 
@@ -327,13 +342,30 @@ def dataAssessment(dataX, dataY, oldEntropy, dataHead, attributeDictionary, attr
 #################
 # MAIN FUNCTION #
 #################
-def prune(dataHead, data, dataRaw):
+def prettify(e, level=0):
+    i = "\n" + level*"  "
+
+    if len(e):
+        if not e.text or not e.text.strip():
+            e.text = i + "  "
+
+        for e in e:
+            prettify(e, level+1)
+
+        if not e.tail or not e.tail.strip():
+            e.tail = i
+
+    if level and (not e.tail or not e.tail.strip()):
+        e.tail = i
+
+    return e
+
+def prune(dataHead, data, dataRaw, xmlFile, txtFile):
     # Generate tree from training data
     attributeDictionary, attributeIsDiscrete = createAttributeandIsDiscrete(data)
 
     # Splits the element based on
     trainingData = dataRaw.sample(frac=0.8)
-
 
     testingData = dataRaw.drop(trainingData.index)
     trainingData = np.array(trainingData)
@@ -346,11 +378,20 @@ def prune(dataHead, data, dataRaw):
     dataX, dataY = splitXY(trainingData)
     feelEmptyData(dataX)
     dataY, classDictionary = translateY(dataY)
-    treeResult = fit(dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
+
+    root = ET.Element('DecisionTree')
+    tree = ET.ElementTree(root)
+
+    treeResult = fit(root, dataX, dataY, dataHead, attributeDictionary, attributeIsDiscrete, classDictionary)
+
+    if xmlFile is not None:
+        print("\nxml Result :")
+        tree.write(xmlFile)
+        ET.dump(prettify(root))
 
     # Create set of rules
-    treeResult.printTree()
     ruleList = treeToRules(treeResult, dataHead)
+    # print("ruleList :")
     # print(ruleList)
     functionRules = []
     for i in range(len(ruleList)):
@@ -362,11 +403,6 @@ def prune(dataHead, data, dataRaw):
         res = testResult(functionRules, testingData[i], dataHead)
         if (res != testingData[i][-1]):
             errorCount += 1
-
-    # print(testingData)
-
-    # print()
-    # print(errorCount)
 
     # Testing pruning....
     # For each rule
@@ -386,7 +422,7 @@ def prune(dataHead, data, dataRaw):
             tempErrorCount = getErrorCount(testingData, experimentFunctionRules, dataHead)
 
             # Do pruning
-            if (tempErrorCount <= errorCount):
+            if (tempErrorCount <= errorCount) and (len(tempRule) > 2):
                 tempRule = experimentRule
                 tempFunctionRules = experimentFunctionRules
                 errorCount = tempErrorCount
@@ -396,8 +432,13 @@ def prune(dataHead, data, dataRaw):
         ruleList[ruleIdx] = tempRule
         functionRules = tempFunctionRules
 
-    # print(ruleList)
     # print(errorCount)
+
+    if txtFile is not None:
+        with open(txtFile, "wb") as f:
+            pickle.dump(ruleList, f)
+
+    return ruleList
 
 # Procedure that feels missing values for each attributes in dataX
 def feelEmptyData(dataX):
@@ -433,6 +474,16 @@ def getErrorCount(testData, functionRules, dataHead):
             errorCount +=1
     return errorCount
 
+# Get error count from a set of rules
+def getErrorCountExternal(testData, functionRules, dataHead):
+    errorCount = 0
+    for i in range(len(testData)):
+        testDatum = testData.iloc[i]
+        res = testResult(functionRules, testDatum, dataHead)
+        if (res != testDatum[-1]):
+            errorCount +=1
+    return errorCount
+
 
 def treeToRules(treeResult, attributeList, lastRule = []):
     rule = lastRule
@@ -460,6 +511,10 @@ def createRule(rules):
         for i in range(len(rules) - 1):
             tempRule = rules[i].split()
             idx = dataHead.index(tempRule[0])
+            # print("Rule")
+            # print(tempRule)
+            # print("Data")
+            # print(testedData)
             toBeEvaluated = "\"" + str(testedData[idx]) + "\" " + tempRule[1] + " \"" + str(tempRule[2]) + "\""
             if (not eval(toBeEvaluated)):
                 isTrue = False
@@ -478,11 +533,18 @@ def testResult(functionRules, testedData, dataHead):
             return tempResult
     return -9999
 
-
 # Gata data of attributes, target, and their names
-dataHead, data, dataRaw = getCSVData("../dataset/iris.csv")
-prune(dataHead, data, dataRaw)
+def loadRules(set_data):
+    xmlFile = "DecisionTree.xml"
+    txtFile = "RuleList.txt"
+    dataHead, data, dataRaw = getData(set_data)
+    prune(dataHead, data, dataRaw, xmlFile, txtFile)
 
+    with open(txtFile, "rb") as f:
+        rules = pickle.load(f)
+
+    print("\nRules :")
+    print(rules)
 
 # print(dataX)
 # print(dataY)

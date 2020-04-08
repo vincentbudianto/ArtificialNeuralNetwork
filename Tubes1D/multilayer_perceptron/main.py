@@ -2,10 +2,11 @@
 Main class
 Program runs from here....
 '''
-from MLP import MLP
-from Layer import Layer, ActivationFunction
+from .MLP import MLP
+from .Layer import Layer, ActivationFunction
 import pandas as pd
 import numpy as np
+import pickle
 
 
 '''
@@ -36,16 +37,10 @@ def generateModel(learningRate):
     layers.append(layer2)
     return MLP(layers, learningRate)
 
-
 '''
-Main function
+Learning function
 '''
-def main():
-    # Read data from csv
-    data = pd.read_csv("../dataset/iris.csv")
-    predictData = data
-    dataHead = list(data.columns)
-
+def learn(data, dataHead, predictData, loadData = False, saveData = False):
     # Shuffle data
     data = data.sample(frac=1).reset_index(drop=True)
 
@@ -68,16 +63,51 @@ def main():
         else:
             return [1, 1, 1]
 
-    model = generateModel(0.05)
-    model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=1000, minError=1, divergingMaxCount=10)
+    model = None
+    if loadData:
+        try:
+            file = open('save_file_ann', 'rb')
+            decision = input("ANN model save_file found, do you want to load model (y/n)?")
+            if decision[0].lower() == 'y':
+                model = pickle.load(file)
+                print('ANN model is loaded from file successfully!')
+            else:
+                print('ANN model is not loaded from file!')
+            file.close()
+        except IOError:
+            print('ANN model save_file not found, initiating new model!')
+
+    if model is None:
+        model = generateModel(0.05)
+        model.learn(dataDict, dataSplitCount, nodeOutputCheck, maxIteration=50, minError=1, divergingMaxCount=10)
+
     model.predict(predictData, nodeOutputCheck)
+
+    if saveData:
+        file = open('save_file_ann', 'wb')
+        pickle.dump(model, file)
+        file.close()
+        print('Saving newest ANN model!')
+
+    return model
+
+'''
+Main function
+'''
+def main():
+    # Read data from csv
+    data = pd.read_csv("../dataset/iris.csv")
+    predictData = data
+    dataHead = list(data.columns)
+
+    model = learn(data, dataHead, predictData)
 
     # Test result
     for i in range(len(model.layers)):
         print("Layer: {}".format(i))
         print(np.matrix(model.layers[i].weight))
 
-main()
+# main()
 
 
 
@@ -98,26 +128,12 @@ def outputCheck(a, b):
     else:
         return None
 
-# Just for test
-    # model = MLP(layers, 0.1)
-    # print(result.inputSize)
-
-    # for i in range(len(model.layers)):
-    #     print(model.layers[i].weight)
-    #     print(model.layers[i].deltaWeight)
-
-    # model.layers[1].deltaWeight[0][0] += 1
-    # model.layers[2].deltaWeight[0][0] += 1
-
-    # for i in range(len(model.layers)):
-    #     print(model.layers[i].weight)
-    #     print(model.layers[i].deltaWeight)
-
-    # model.flushDelta()
-
-    # for i in range(len(model.layers)):
-    #     print(model.layers[i].weight)
-    #     print(model.layers[i].deltaWeight)
-    # print(model.learningRate)
-
-
+def nodeOutputCheckExternal(str):
+    if (str == "Versicolor"):
+        return [0, 0, 1]
+    elif (str == "Virginica"):
+        return [0, 1, 0]
+    elif (str == "Setosa"):
+        return [1, 0, 0]
+    else:
+        return [1, 1, 1]

@@ -1,7 +1,7 @@
 # from Layer import Layer
-from Layer import Layer
+from .Layer import Layer
 from typing import List
-from Function import sigmoid, mse, crossentropyCount, errorCount, softmax
+from .Function import sigmoid, mse, crossentropyCount, errorCount, softmax
 import numpy as np
 import copy as cp
 
@@ -194,7 +194,7 @@ class MLP:
             # Executes one epoch
             self.oneEpoch(data, loopJump, outputCheck)
             accuracy = (self.caseNumber-self.countError)/self.caseNumber*100;
-            print('Iteration: {}, Wrong Prediction: {}, Total Case: {}, Error: {}, Accuracy: {}%'.format(i+1, self.countError, self.caseNumber, round(self.error, 5), round(accuracy, 2)))
+            # print('Iteration: {}, Wrong Prediction: {}, Total Case: {}, Error: {}, Accuracy: {}%'.format(i+1, self.countError, self.caseNumber, round(self.error, 5), round(accuracy, 2)))
 
             # Checks if smaller than the minimum error
             if self.error < minError:
@@ -216,6 +216,7 @@ class MLP:
             self.caseNumber = 0
 
     def predict(self, data, nodeOutputCheck):
+        rightCount = 0
         for dataIdx in range(len(data)):
             numericList = []
             result = nodeOutputCheck(data.iloc[dataIdx][-1])
@@ -225,8 +226,12 @@ class MLP:
             predict = self.layers[-1].getOutput()
             maxIdx = predict.index(max(predict))
             processedPredict = [0 if i != maxIdx else 1 for i in range(len(predict))]
-            print("Test Prediction:")
-            print(result, processedPredict, result == processedPredict)
+            # print("Test Prediction:")
+            # print(result, processedPredict, result == processedPredict)
+            if (result == processedPredict):
+                rightCount += 1
+        
+        return rightCount / len(data)
 
 
 

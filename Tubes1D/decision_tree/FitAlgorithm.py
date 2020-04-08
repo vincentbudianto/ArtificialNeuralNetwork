@@ -1,8 +1,8 @@
 # Main program to fit the data read
 import pandas as pd
 import numpy as np
-import Function as f
-from DecisionTree import DecisionTree
+from . import Function as f
+from .DecisionTree import DecisionTree
 from collections import defaultdict
 
 # Get data from csv
@@ -214,11 +214,11 @@ def feelEmptyData(dataX):
 
 # Get data and head
 # dataHead, data = getCSVData("iris.csv")
-dataHead, data = getCSVData("../dataset/iris.csv")
+# dataHead, data = getCSVData("../dataset/iris.csv")
 
 # Get x and y
-newX, newY = splitXY(dataHead, data)
-feelEmptyData(newX)
-newY, classDictionary = translateY(newY)
-newX, attributeDictionary = translateX(newX)
-fit(newX, newY, dataHead, attributeDictionary, classDictionary)
+# newX, newY = splitXY(dataHead, data)
+# feelEmptyData(newX)
+# newY, classDictionary = translateY(newY)
+# newX, attributeDictionary = translateX(newX)
+# fit(newX, newY, dataHead, attributeDictionary, classDictionary)
